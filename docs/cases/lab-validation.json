@@ -1,0 +1,38 @@
+{
+  "built_on": {
+    "confident_errors": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "coverage": {
+    "interval_brackets_truth": true,
+    "limitation": "Conditional check on this staged finite population; not a calibrated confidence guarantee for real missing evidence",
+    "true_captured_fraction": 0.75
+  },
+  "errors": [],
+  "produced": {
+    "abstention_rate": 0.25,
+    "confident_errors": 0,
+    "correct": 9,
+    "identifiable_with_captured_transcripts": 9,
+    "population": 12,
+    "precision": 1.0,
+    "recall": 1.0,
+    "recall_over_all_records": 0.75,
+    "supported": 9
+  },
+  "read": {
+    "confident_errors": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "spoofed": {
+    "captured": 2,
+    "contradicted": 2,
+    "false_positives": 0,
+    "missed": 0
+  },
+  "unscored": {
+    "launched": "No independently observed background job in in-process stages"
+  }
+}

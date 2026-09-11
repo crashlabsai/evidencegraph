@@ -1,0 +1,16 @@
+{
+  "format": "payload-manifest-sha256",
+  "source_corpus_redistribution": "not authorized; wiki bundle stays local",
+  "bundles": {
+    "dsewiki": {
+      "payload_manifest_sha256": "c4e0a544513b9a71c49b95e64a56d87f84da64ffa9bd04874d93fa0e1cf27f21",
+      "verified": true,
+      "docket_recomputed": true
+    },
+    "scripted_registry_seed_7": {
+      "payload_manifest_sha256": "bf7ac369acc1e914f741c7175ea32378679480c064ec3a8d999f20c06dd8f1c3",
+      "verified": true,
+      "docket_recomputed": true
+    }
+  }
+}

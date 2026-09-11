@@ -1,0 +1,34 @@
+[project]
+name = "evidencegraph"
+version = "0.1.0"
+description = "Question-driven evidence graphs for agent incident forensics"
+requires-python = ">=3.13,<3.15"
+license = "MIT"
+dependencies = ["inspect-ai>=0.3.263,<0.4", "inspect-scout>=0.5.2,<0.6", "pydantic>=2.11", "typer>=0.16", "polars>=1.30", "pyarrow>=20", "duckdb>=1.3", "packaging>=24", "numpy>=2"]
+
+[project.scripts]
+eg = "evidencegraph.cli:app"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.12", "basedpyright>=1.29"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/evidencegraph"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B", "UP"]
+[tool.basedpyright]
+typeCheckingMode = "standard"
+pythonVersion = "3.13"
+include = ["src", "tests"]
+reportMissingTypeStubs = false
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["docker: requires Docker with enforced cgroups"]
