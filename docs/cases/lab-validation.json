@@ -10,6 +10,11 @@
     "true_captured_fraction": 0.75
   },
   "errors": [],
+  "fixture_exposure": {
+    "confident_errors": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
   "produced": {
     "abstention_rate": 0.25,
     "confident_errors": 0,
@@ -33,6 +38,7 @@
     "missed": 0
   },
   "unscored": {
-    "launched": "No independently observed background job in in-process stages"
+    "launched": "No independently observed background job in in-process stages",
+    "refresh_ordering": "The in-process stage shares one clock, so LQ7 ordering is not independently scored"
   }
 }

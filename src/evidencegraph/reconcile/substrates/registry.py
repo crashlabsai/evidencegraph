@@ -57,6 +57,24 @@ class RegistrySubstrate(NoopHooks):
         receipt = self.receipt(action)
         return bool(receipt and receipt["event_id"] == record["natural_key"])
 
+    def binding(self, record: dict, action: dict) -> str:
+        """Whether the registry's published receipt-token commitment binds this claim.
+
+        Every other receipt field (key, digest, event id, timestamp) is public once the
+        ledger is, so a receipt copied into a forged transcript event matches them all.
+        Only the token the registry handed to the caller separates the caller's own
+        receipt from a copy. Returns "bound", "mismatch", "unbound" (record committed,
+        claim carries no token) or "unavailable" (record publishes no commitment).
+        """
+        commitment = record["attrs"].get("receipt_token_sha256")
+        if not isinstance(commitment, str):
+            return "unavailable"
+        receipt = self.receipt(action)
+        token = receipt.get("receipt_token") if receipt else None
+        if not isinstance(token, str):
+            return "unbound"
+        return "bound" if sha256_text(token) == commitment else "mismatch"
+
     def earliest_creation_is_noop(self, record: dict) -> bool:
         # Registry writes mutate the version history, even when bytes repeat.
         # Crossledger's mkdir 2B rule is only valid for explicitly idempotent creation.

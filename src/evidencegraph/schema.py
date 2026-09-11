@@ -41,6 +41,11 @@ class TrustDomain(Frozen):
     label: str
     sources: tuple[str, ...] = ()
     related_to: dict[str, TrustDomainRelation] = Field(default_factory=dict)
+    # Declares that this domain's records were written by a recorder the investigated
+    # actors could not control or edit, so a native event cannot have been fabricated
+    # by them. Without it, a receipt copied from public data into a transcript is
+    # indistinguishable from a genuine one unless the substrate binds receipts.
+    authentic_records: bool = False
 
 
 class ClockBound(Frozen):

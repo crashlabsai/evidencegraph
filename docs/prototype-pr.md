@@ -1,3 +1,7 @@
+# Prototype pull request description (historical)
+
+Description of [PR #1](https://github.com/crashlabsai/evidencegraph/pull/1) as merged at `ded5e94`. Its counts and metrics describe that point; see [handoff.md](handoff.md) and [critical-review.md](critical-review.md) for what changed afterwards.
+
 Build a question-driven evidence graph for two concrete forensic cases: the public DseWiki export and a staged registry incident with private host truth. The `eg` CLI snapshots sources, writes cited Parquet graph tables, reconciles claims with explicit abstention, estimates coverage, renders compact dockets, and exports verifiable BagIt directories.
 
 The real-data reconstruction ingests all 14,591 revisions and the accompanying pages, events, labels, off-wiki records and links. It verifies source body hashes and reports which manifest facts reproduce, differ, or cannot be reconstructed. Published save events are treated as dependent revision-derived observations, so capture-recapture does not identify the incident population.

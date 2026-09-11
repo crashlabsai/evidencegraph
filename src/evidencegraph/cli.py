@@ -11,13 +11,26 @@ from evidencegraph.manifest import read_manifest
 from evidencegraph.schema import CaseConfig, ClockBound, TrustDomain
 from evidencegraph.store import Store
 
-app = typer.Typer(no_args_is_help=True, help="Evidence graphs for agent incident forensics.")
-case_app = typer.Typer(no_args_is_help=True)
-witness_app = typer.Typer(no_args_is_help=True)
-lab_app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(
+    no_args_is_help=True,
+    help=(
+        "Evidence graphs for agent incident forensics. Typical order: case init, "
+        "witness add, ingest, reconcile, coverage, docket, export, verify. "
+        "See docs/getting-started.md for a worked example."
+    ),
+)
+case_app = typer.Typer(no_args_is_help=True, help="Create a case and declare its assumptions.")
+witness_app = typer.Typer(
+    no_args_is_help=True, help="Acquire evidence files as hashed, immutable witnesses."
+)
+lab_app = typer.Typer(
+    no_args_is_help=True, help="Stage synthetic incidents and import lab collections."
+)
 app.add_typer(case_app, name="case")
 app.add_typer(witness_app, name="witness")
 app.add_typer(lab_app, name="lab")
+
+Case = Annotated[Path, typer.Argument(help="Case directory created by `eg case init`")]
 
 
 def output(value: object) -> None:
@@ -26,12 +39,40 @@ def output(value: object) -> None:
 
 @case_app.command("init")
 def init(
-    case: Path,
-    title: str = "Untitled investigation",
-    trust_domain: Annotated[list[str] | None, typer.Option("--trust-domain")] = None,
-    independent: Annotated[list[str] | None, typer.Option("--independent")] = None,
-    clock_bound: Annotated[list[str] | None, typer.Option("--clock-bound")] = None,
+    case: Annotated[Path, typer.Argument(help="New case directory to create")],
+    title: Annotated[str, typer.Option(help="Title printed on the docket")] = (
+        "Untitled investigation"
+    ),
+    trust_domain: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--trust-domain",
+            help="Declare a trust domain as ID=LABEL, once per domain, for example registry=Host",
+        ),
+    ] = None,
+    independent: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--independent",
+            help="Declare two domains independent as A:B; only then can a cross-domain match become supported",
+        ),
+    ] = None,
+    clock_bound: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--clock-bound",
+            help="Declare a clock relation as CLOCK_A:CLOCK_B:SECONDS; registry rules read the runner:container pair",
+        ),
+    ] = None,
+    authentic_records: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--authentic-records",
+            help="Domain whose records the investigated actors could not fabricate or edit",
+        ),
+    ] = None,
 ):
+    """Create a case directory with its trust, independence and clock declarations."""
     domains = {}
     for item in trust_domain or []:
         key, sep, label = item.partition("=")
@@ -44,6 +85,10 @@ def init(
             raise typer.BadParameter("independence requires declared domains")
         domains[a]["related_to"][b] = "independent"
         domains[b]["related_to"][a] = "independent"
+    for item in authentic_records or []:
+        if item not in domains:
+            raise typer.BadParameter("authentic records require a declared domain")
+        domains[item]["authentic_records"] = True
     bounds = []
     for item in clock_bound or []:
         a, b, seconds = item.split(":")
@@ -61,29 +106,55 @@ def init(
 
 @witness_app.command("add")
 def add(
-    case: Path,
-    path: Path,
-    adapter: Annotated[str, typer.Option()],
-    trust_domain: Annotated[str, typer.Option()],
-    origin: str | None = None,
+    case: Case,
+    path: Annotated[
+        Path, typer.Argument(help="Evidence file, or a directory the adapter knows how to scan")
+    ],
+    adapter: Annotated[
+        str,
+        typer.Option(help="inspect-eval, lab-public, collusion-wiki or reference-list"),
+    ],
+    trust_domain: Annotated[str, typer.Option(help="Declared domain id this evidence belongs to")],
+    origin: Annotated[
+        str | None, typer.Option(help="Where the file came from, if not its current path")
+    ] = None,
 ):
+    """Snapshot and hash evidence before anything reads it. Prints the witness ids."""
     output(
         lifecycle.add_witness(case, path, adapter=adapter, trust_domain=trust_domain, origin=origin)
     )
 
 
 @witness_app.command("describe")
-def describe(case: Path, witness_id: str):
+def describe(
+    case: Case, witness_id: Annotated[str, typer.Argument(help="Witness id from `witness add`")]
+):
+    """Show a witness's metadata and what its ingestion produced."""
     output(lifecycle.describe_witness(case, witness_id))
 
 
 @app.command()
-def ingest(case: Path, witness: str | None = None):
+def ingest(
+    case: Case,
+    witness: Annotated[
+        str | None, typer.Option(help="Ingest one witness id; default is every witness")
+    ] = None,
+):
+    """Parse witnesses into cited graph tables. Skips witnesses already ingested under the current case.json."""
     output(lifecycle.ingest(case, witness))
 
 
 @app.command()
-def query(case: Path, sql: str):
+def query(
+    case: Case,
+    sql: Annotated[
+        str,
+        typer.Argument(
+            help="One read-only SELECT over entities, relations, citations, witnesses, docket_answers and the other tables"
+        ),
+    ],
+):
+    """Run a read-only SQL query against the graph (DuckDB)."""
     with Store(case, read_manifest(case)) as store:
         statements = store.connection.extract_statements(sql)
         if len(statements) != 1 or str(statements[0].type) != "StatementType.SELECT":
@@ -100,21 +171,30 @@ def query(case: Path, sql: str):
 
 
 @app.command()
-def identity(case: Path):
+def identity(case: Case):
+    """Derive identity hypotheses (shared labels, shared network prefixes); never authenticates actors."""
     from evidencegraph.identity import identify
 
     output(identify(case))
 
 
 @app.command()
-def lineage(case: Path):
+def lineage(case: Case):
+    """Derive textual ancestry and byte-equality relations between revisions and records."""
     from evidencegraph.lineage import lineage as run
 
     output(run(case))
 
 
 @app.command()
-def facts(case: Path, manifest: Path | None = None):
+def facts(
+    case: Case,
+    manifest: Annotated[
+        Path | None,
+        typer.Option(help="Publisher manifest to audit; it must already be an ingested witness"),
+    ] = None,
+):
+    """Recompute a publisher's manifest facts from the graph and report exact, differing and not-computable ones."""
     from evidencegraph.docket.facts import audit_facts
 
     if manifest:
@@ -128,28 +208,46 @@ def facts(case: Path, manifest: Path | None = None):
 
 
 @app.command()
-def coverage(case: Path, level: float = 0.95, seed: int = 0):
+def coverage(
+    case: Case,
+    level: Annotated[float, typer.Option(help="Bootstrap interval level")] = 0.95,
+    seed: Annotated[int, typer.Option(help="Bootstrap seed")] = 0,
+):
+    """Estimate what fraction of the declared record population has supported attributions. Run after reconcile."""
     from evidencegraph.coverage.estimate import estimate
 
     output(estimate(case, level=level, seed=seed))
 
 
 @app.command()
-def docket(case: Path):
+def docket(case: Case):
+    """Answer the frozen questions and write DOCKET.md and docket.json into the case."""
     from evidencegraph.docket.render import render
 
     typer.echo(str(render(case)))
 
 
 @app.command()
-def reconcile(case: Path, substrate: Annotated[str, typer.Option()], bound: float | None = None):
+def reconcile(
+    case: Case,
+    substrate: Annotated[str, typer.Option(help="registry or wiki-saves")],
+    bound: Annotated[
+        float | None,
+        typer.Option(help="Override the declared runner:container clock bound in seconds"),
+    ] = None,
+):
+    """Match independently observed records to transcript claims, abstaining when evidence is insufficient."""
     from evidencegraph.reconcile.engine import reconcile_case
 
     output(reconcile_case(case, substrate, bound=bound))
 
 
 @app.command()
-def cite(case: Path, ref_id: str):
+def cite(
+    case: Case,
+    ref_id: Annotated[str, typer.Argument(help="Citation id, for example from docket.json")],
+):
+    """Resolve a citation to its source row or native event and verify its hash."""
     from evidencegraph.refs import resolve_citation
     from evidencegraph.schema import Citation, Witness
     from evidencegraph.store import safe_path
@@ -168,39 +266,66 @@ def cite(case: Path, ref_id: str):
 
 @lab_app.command("stage")
 def stage(
-    out: Path,
-    seed: int = 0,
-    spoof: str | None = None,
-    drop: Annotated[list[str] | None, typer.Option("--drop")] = None,
+    out: Annotated[
+        Path, typer.Argument(help="New directory for public/ and private/ stage output")
+    ],
+    seed: Annotated[int, typer.Option(help="Scenario seed")] = 0,
+    spoof: Annotated[
+        str | None, typer.Option(help="Append fabricated write receipts as LABEL:COUNT")
+    ] = None,
+    drop: Annotated[
+        list[str] | None,
+        typer.Option("--drop", help="Withhold this agent's transcript from public/ (A, B, C or D)"),
+    ] = None,
 ):
+    """Build a synthetic incident with real Inspect logs, an independent registry and private truth."""
     from evidencegraph.lab.stage import construct_stage
 
     output(construct_stage(out, seed=seed, spoof=spoof, drop=drop or []))
 
 
 @lab_app.command("import-mac")
-def import_mac(collection: Path, out: Path):
+def import_mac(
+    collection: Annotated[
+        Path, typer.Argument(help="Public replica evidence directory containing ledger.jsonl")
+    ],
+    out: Annotated[Path, typer.Argument(help="New case directory")],
+):
+    """Import a public Mac replica collection as a case; declare a measured clock bound before reconciling."""
     from evidencegraph.lab.stage import import_mac_collection
 
     output(import_mac_collection(collection, out))
 
 
 @app.command()
-def validate(case: Path, truth: Annotated[Path, typer.Option()]):
+def validate(
+    case: Case,
+    truth: Annotated[Path, typer.Option(help="Private truth directory from `lab stage`")],
+):
+    """Score supported conclusions against private host truth. The graph never reads this directory."""
     from evidencegraph.validate.score import validate_case
 
     output(validate_case(case, truth))
 
 
 @app.command("export")
-def export_case(case: Path, dest: Path):
+def export_case(
+    case: Case, dest: Annotated[Path, typer.Argument(help="New bundle directory outside the case")]
+):
+    """Write a portable BagIt bundle with evidence, graph, docket and checksums."""
     from evidencegraph.export.bagit import export_bundle
 
     output(export_bundle(case, dest))
 
 
 @app.command()
-def verify(dest: Path, recompute: bool = False):
+def verify(
+    dest: Annotated[Path, typer.Argument(help="Bundle directory from `export`")],
+    recompute: Annotated[
+        bool, typer.Option(help="Also recompute the docket from the bundled graph and compare")
+    ] = False,
+):
+    """Check a bundle's checksums, inventory and graph invariants."""
     from evidencegraph.export.bagit import verify_bundle
 
     output(verify_bundle(dest, recompute=recompute))
@@ -208,8 +333,11 @@ def verify(dest: Path, recompute: bool = False):
 
 @app.command("scan-validation")
 def scan_validation(
-    case: Path, truth: Annotated[Path, typer.Option()], dest: Annotated[Path, typer.Option()]
+    case: Case,
+    truth: Annotated[Path, typer.Option(help="Private truth directory")],
+    dest: Annotated[Path, typer.Option(help="New CSV of held-out scanner keys")],
 ):
+    """Write the held-out validation keys the offline Scout control is scored against."""
     from evidencegraph.scanners.validation import validation_csv
 
     output(validation_csv(case, truth, dest))
@@ -217,19 +345,23 @@ def scan_validation(
 
 @app.command()
 def scan(
-    case: Path,
-    scanner: Annotated[str, typer.Option()],
-    validation: Annotated[Path, typer.Option()],
-    model: str = "mockllm/claims",
-    max_usd: float = 0,
+    case: Case,
+    scanner: Annotated[str, typer.Option(help="Only claimed-writes is available")],
+    validation: Annotated[Path, typer.Option(help="CSV from `scan-validation`")],
+    model: Annotated[str, typer.Option(help="Only the offline mockllm/claims control runs")] = (
+        "mockllm/claims"
+    ),
+    max_usd: Annotated[float, typer.Option(help="Must stay 0; live paid scanning is disabled")] = 0,
 ):
+    """Run the offline Scout scanner control and score it. No paid model calls are possible here."""
     from evidencegraph.scanners.validation import run_scan
 
     output(run_scan(case, scanner=scanner, validation=validation, model=model, max_usd=max_usd))
 
 
 @app.command("scout-db")
-def scout_db(case: Path):
+def scout_db(case: Case):
+    """Insert the ingested Inspect transcripts into a Scout transcript database inside the case."""
     from evidencegraph.scanners.validation import scout_database
 
     output(scout_database(case))

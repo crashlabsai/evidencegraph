@@ -1,31 +1,48 @@
 # Prototype handoff — 2026-09-11
 
-Independent repository: [`crashlabsai/evidencegraph`](https://github.com/crashlabsai/evidencegraph)
-(private). Foundation on `main` (`fb7341f`); prototype work on `prototype`
-(`846320b`), tagged `eg-prototype-v0.1`. Review:
-[PR #1](https://github.com/crashlabsai/evidencegraph/pull/1).
+Repository: [`crashlabsai/evidencegraph`](https://github.com/crashlabsai/evidencegraph),
+MIT licensed. Default branch `main`; the first packaged prototype is tagged
+`eg-prototype-v0.1`, with its early work on branch `prototype`.
 
-Crossledger still holds backup branches `evidencegraph-foundation` and
-`evidencegraph-prototype` plus the same tag, in case the dedicated remote is
-unavailable.
-
-Clone and run:
+Clone and run (default branch):
 
 ```sh
-git clone --branch prototype https://github.com/crashlabsai/evidencegraph.git
+git clone https://github.com/crashlabsai/evidencegraph.git
 cd evidencegraph
 uv sync --locked
 uv run python scripts/demo.py cases/demo --seed 7
 ```
 
-Completed checks: 53 tests pass; lint, formatting, type checking, wheel and source
-distribution builds pass. The public corpus reconstruction script completed from
-a new download. The full 14,591-revision case and scripted registry case exported
-and passed bundle verification with docket recomputation. The readable dockets,
-metrics, source inventory and retained bundle hashes are under `docs/cases/`.
+To reproduce the tagged prototype exactly: `git checkout eg-prototype-v0.1`.
+
+Completed checks at the prototype tag: 53 tests; lint, formatting, type checking,
+wheel and source distribution builds. The public corpus reconstruction script
+completed from a new download. The full 14,591-revision case and scripted registry
+case exported and passed bundle verification with docket recomputation. Readable
+dockets, metrics, source inventory and retained bundle hashes are under
+`docs/cases/`.
 
 Remaining acceptance work: collect and validate the Mac Docker background-process
 case with an observed clock bound and additional public host launch observations;
-obtain a named investigator's review. Live paid scanning is disabled pending
-enforceable provider cost accounting. The implemented Scout control is offline
-and spent USD 0. 
+obtain independent review of the findings. Live paid scanning is disabled pending
+enforceable provider cost accounting. The implemented Scout control is offline and
+spent USD 0.
+
+## Correctness pass — 2026-09-11
+
+The nine reproduced defects in [critical-review.md](critical-review.md) are fixed on
+`main`; its closing section records what changed per finding and what remains.
+70 tests pass (53 prior plus regression tests converted from the review probes and a
+test of the documented recipe); lint, formatting and type checks pass. Both recorded
+cases under `docs/cases/`, the seed-7 registry incident and the wiki reconstruction,
+were regenerated with the fixed engine and their bundle hashes updated. The Mac Docker collection, a matched LLM comparison and independent
+review remain open.
+
+## Release notes for maintainers
+
+1. Keep CI green on `main`.
+2. `.gitignore` excludes `/cases/`, `/.context/`, environment files and secrets.
+3. Do not commit raw corpus bodies, private truth or credentials; payload-manifest
+   hashes are enough to reference a bundle.
+4. Keep Issues enabled and security advisories available for misleading-conclusion
+   reports.

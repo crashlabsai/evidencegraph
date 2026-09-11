@@ -127,6 +127,13 @@ def add_witness(
                         "identical bytes cannot be assigned conflicting witness semantics"
                     )
             else:
+                # Two observations may share bytes (for example two empty logs), but the
+                # same bytes can never count as two independently trusted witnesses.
+                if any(
+                    w["sha256"] == witness.sha256 and w["trust_domain"] != trust_domain
+                    for w in manifest["witnesses"].values()
+                ):
+                    raise ValueError("identical bytes cannot be declared in two trust domains")
                 manifest["witnesses"][witness.witness_id] = witness.model_dump(mode="json")
             added.append(witness.witness_id)
         invalidate_derived(manifest)

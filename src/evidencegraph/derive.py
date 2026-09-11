@@ -6,9 +6,43 @@ from pathlib import Path
 from evidencegraph.case import configuration
 from evidencegraph.ids import relation_id
 from evidencegraph.manifest import update_manifest_stage
+from evidencegraph.provenance import sha256_file
 from evidencegraph.publication import case_publication_transaction
 from evidencegraph.schema import CaseConfig, Outcome, Relation, RelationKind, TrustDomainRelation
 from evidencegraph.store import PartitionWriter, Store, validate_graph
+
+
+def configuration_sha256(root: Path) -> str:
+    return sha256_file(root / "case.json")
+
+
+def require_current_configuration(root: Path, manifest: dict) -> str:
+    """Every ingested and derived stage must have been computed under the current case.json.
+
+    Trust declarations and clock bounds are inputs to the conclusions; a conclusion
+    computed under different assumptions is stale, not merely old.
+    """
+    current = configuration_sha256(root)
+    stale = sorted(
+        name
+        for name, stage in manifest.get("stages", {}).items()
+        if (name.startswith("ingest.") or "case_config_sha256" in stage.get("parameters", {}))
+        and stage.get("parameters", {}).get("case_config_sha256") != current
+    )
+    if stale:
+        raise ValueError(
+            "case configuration changed since "
+            + ", ".join(stale)
+            + "; re-run ingest and the derived stages before rendering, validating or exporting"
+        )
+    return current
+
+
+def authentic_witnesses(config: CaseConfig, manifest: dict) -> frozenset[str]:
+    declared = {d.id for d in config.trust_domains if d.authentic_records}
+    return frozenset(
+        w for w, meta in manifest["witnesses"].items() if meta["trust_domain"] in declared
+    )
 
 
 def trust_relation(config: CaseConfig, manifest: dict, witness_ids: Iterable[str]) -> str:
@@ -63,6 +97,7 @@ def run_stage(root: Path, name: str, derive: Callable, *, params: dict | None = 
     with case_publication_transaction(root) as manifest:
         if not manifest["partitions"]:
             raise ValueError("ingest witnesses first")
+        config_sha256 = require_current_configuration(root, manifest)
         manifest["partitions"].pop(name, None)
         if name not in {"facts", "identity", "lineage"}:
             manifest.pop("validation", None)
@@ -77,7 +112,9 @@ def run_stage(root: Path, name: str, derive: Callable, *, params: dict | None = 
                 writer.add(table, row)
         partition = writer.finish()
         manifest["partitions"][name] = partition
-        update_manifest_stage(manifest, name, params=params)
+        update_manifest_stage(
+            manifest, name, params={**(params or {}), "case_config_sha256": config_sha256}
+        )
         with Store(root, manifest) as store:
             validate_graph(store)
     return {table: data["rows"] for table, data in partition.items()}

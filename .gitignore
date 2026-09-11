@@ -10,3 +10,6 @@ dist/
 /cases/
 /.context/
 *.duckdb.wal
+.env
+.env.*
+.DS_Store

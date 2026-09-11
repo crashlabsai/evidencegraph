@@ -2,9 +2,24 @@
 name = "evidencegraph"
 version = "0.1.0"
 description = "Question-driven evidence graphs for agent incident forensics"
+readme = "README.md"
 requires-python = ">=3.13,<3.15"
 license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["forensics", "ai-agents", "provenance", "evidence", "inspect-ai"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security",
+]
 dependencies = ["inspect-ai>=0.3.263,<0.4", "inspect-scout>=0.5.2,<0.6", "pydantic>=2.11", "typer>=0.16", "polars>=1.30", "pyarrow>=20", "duckdb>=1.3", "packaging>=24", "numpy>=2"]
+
+[project.urls]
+Repository = "https://github.com/crashlabsai/evidencegraph"
+Issues = "https://github.com/crashlabsai/evidencegraph/issues"
+Security = "https://github.com/crashlabsai/evidencegraph/security/advisories/new"
 
 [project.scripts]
 eg = "evidencegraph.cli:app"

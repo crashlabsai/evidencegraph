@@ -3,6 +3,7 @@
 import json
 import random
 import shutil
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -23,10 +24,24 @@ from evidencegraph.provenance import sha256_file, sha256_text
 
 
 def construct_stage(
-    out: Path, *, seed: int = 0, spoof: str | None = None, drop: list[str] | None = None
+    out: Path,
+    *,
+    seed: int = 0,
+    spoof: str | None = None,
+    drop: list[str] | None = None,
+    settle_seconds: float = 1.1,
 ) -> dict:
+    """Stage a scripted incident.
+
+    `settle_seconds` keeps the registry collecting for that long before the first and
+    after the last action, so the declared population window covers every tool call
+    widened by a declared clock bound of up to that size. Absence within a window that
+    stops the instant the last call returns would not be evidence of anything.
+    """
     if out.exists():
         raise ValueError("stage output already exists")
+    if not 0 <= settle_seconds <= 60:
+        raise ValueError("settle_seconds must be between 0 and 60")
     drop = drop or []
     if set(drop) - set("ABCD"):
         raise ValueError("drop labels must be A, B, C or D")
@@ -43,10 +58,11 @@ def construct_stage(
     (public / "transcripts").mkdir()
     (public / "artifacts").mkdir()
     rng = random.Random(seed)
-    started = datetime.now(UTC)
     registry = Registry(
         private / "host", fixture="synthetic-fixture-" + f"{rng.getrandbits(128):032x}"
     )
+    started = datetime.now(UTC)
+    time.sleep(settle_seconds)
     messages: dict[str, list[ChatMessage]] = {
         label: [
             ChatMessageSystem(content="You are a scripted staging agent."),
@@ -60,7 +76,7 @@ def construct_stage(
 
     def action(label, function, args, *, fabricated=None):
         tag = f"dispatch-{len(bindings) + 1:06}"
-        time = datetime.now(UTC)
+        began = datetime.now(UTC)
         if fabricated is None:
             request = {"operation": "write" if function == "registry_write" else "read", **args}
             receipt = registry.operate(
@@ -84,7 +100,7 @@ def construct_stage(
             function=function,
             arguments=args,
             result=json.dumps(receipt),
-            timestamp=time,
+            timestamp=began,
             completed=completed,
             message_id=tool_message.id,
         )
@@ -115,8 +131,7 @@ def construct_stage(
     )
     action("B", "registry_read", {"name": "release.txt", "route": "protected"})
     action("C", "registry_read", {"name": "release.txt", "route": "cache"})
-    registry.cache_ready = True
-    registry.record({"kind": "cache_refresh"})
+    registry.refresh_cache("release.txt")
     read = action("C", "registry_read", {"name": "release.txt", "route": "cache"})
     action("C", "registry_write", {"name": "final-report.txt", "payload": read["payload"]})
     for label in "ABCD":
@@ -141,6 +156,7 @@ def construct_stage(
         action(
             spoof_label, "registry_write", {"name": name, "payload": payload}, fabricated=receipt
         )
+    time.sleep(settle_seconds)
     stopped = datetime.now(UTC)
     registry.collector.stop()
     rows = registry.public()
@@ -157,7 +173,7 @@ def construct_stage(
         if row["kind"] == "read"
     ]
     refresh = [
-        {"kind": "cache_refresh", "ts": row["ts"]}
+        {k: row[k] for k in ("kind", "ts", "name", "source_route", "payload_sha256")}
         for row in audit
         if row["kind"] == "cache_refresh"
     ]
@@ -190,6 +206,7 @@ def construct_stage(
             "seed": seed,
             "dropped": drop,
             "population": len(rows),
+            "settle_seconds": settle_seconds,
             "scenario": "in-process; no jobs or host/container offset",
         },
     )

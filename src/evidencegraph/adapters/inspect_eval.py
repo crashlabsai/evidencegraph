@@ -44,6 +44,10 @@ def read_transcripts(
     return asyncio.run(collect())
 
 
+def event_end(event: Event):
+    return getattr(event, "completed", None) or event.timestamp
+
+
 def ref_for_event(witness: Witness, transcript: Transcript, event: Event):
     if not event.uuid:
         raise ValueError("event has no reproducible uuid")
@@ -110,6 +114,47 @@ class InspectEval:
             )
             event_entities = {}
             seen_events = set()
+            # The transcript's final recorded event of any type, for questions about
+            # what happened after a session ended. Tool events alone would miss later
+            # sandbox, model or state activity.
+            timed = [e for e in transcript.events if e.uuid and e.timestamp]
+            if timed:
+                final = max(enumerate(timed), key=lambda pair: (event_end(pair[1]), pair[0]))[1]
+                ref = ref_for_event(witness, transcript, final)
+                lower, upper = final.timestamp.isoformat(), event_end(final).isoformat()
+                last = builder.entity(
+                    "task",
+                    "transcript_final_event",
+                    transcript.transcript_id,
+                    ref,
+                    {
+                        "transcript_id": transcript.transcript_id,
+                        "event_type": final.event,
+                        "event_uuid": final.uuid,
+                        "events_considered": len(timed),
+                    },
+                    time_lower=lower,
+                    time_upper=upper,
+                    time_grade="recorded_event",
+                    time_uncertainty_s=0,
+                    winning_clock_id=clock_id,
+                )
+                builder.edge("member_of", last, session, ref, method="scout_transcript_locator")
+                yield (
+                    "time_claims",
+                    TimeClaim(
+                        entity_id=last.entity_id,
+                        witness_id=witness.witness_id,
+                        clock_id=clock_id,
+                        lower=lower,
+                        upper=upper,
+                        grade="recorded_event",
+                        uncertainty_s=0,
+                        winning=True,
+                        citation_id=ref.citation_id,
+                        note="Final recorded event of the transcript; clock offset requires a case declaration",
+                    ),
+                )
             for event in transcript.events:
                 if not isinstance(event, (ToolEvent, SandboxEvent)):
                     continue
@@ -145,7 +190,7 @@ class InspectEval:
                         }
                     )
                 lower = event.timestamp.isoformat()
-                upper = (event.completed or event.timestamp).isoformat()
+                upper = event_end(event).isoformat()
                 entity = builder.entity(
                     "action",
                     subkind,
@@ -242,26 +287,28 @@ class InspectEval:
                             method="configured_handle_pattern",
                             outcome=Outcome.AMBIGUOUS,
                         )
-            for tool, candidates, outcome, detail in check_transcript(transcript):
+            for tool, pairs in check_transcript(transcript):
                 tool_entity = event_entities[tool.uuid]
-                for sandbox in candidates:
+                tool_ref = ref_for_event(witness, transcript, tool)
+                for sandbox, outcome, detail in pairs:
                     builder.edge(
                         "corroborated_by",
                         tool_entity,
                         event_entities[sandbox.uuid],
-                        ref_for_event(witness, transcript, tool),
+                        tool_ref,
                         method="tool_sandbox_consistency",
                         outcome=Outcome(outcome),
                         rationale=detail,
+                        also=(ref_for_event(witness, transcript, sandbox),),
                     )
-                if not candidates:
+                if not pairs:
                     builder.edge(
                         "corroborated_by",
                         tool_entity,
                         session,
-                        ref_for_event(witness, transcript, tool),
+                        tool_ref,
                         method="tool_sandbox_consistency",
                         outcome=Outcome.NOT_ASSESSABLE,
-                        rationale=detail,
+                        rationale="No sandbox execution recorded within the tool's window; no independent execution conclusion",
                     )
             yield from builder.drain()

@@ -4,6 +4,8 @@ import shutil
 from pathlib import Path
 from uuid import uuid4
 
+from evidencegraph.derive import require_current_configuration
+from evidencegraph.docket.answers import fixture_exposure
 from evidencegraph.manifest import atomic_json, update_manifest_stage
 from evidencegraph.provenance import sha256_file, sha256_text
 from evidencegraph.publication import case_publication_transaction
@@ -12,8 +14,9 @@ from evidencegraph.validate.truth_store import host_key
 
 
 def validate_case(root: Path, truth: Path) -> dict:
-    key = host_key(truth)
     with case_publication_transaction(root) as manifest:
+        config_sha256 = require_current_configuration(root, manifest)
+        key = host_key(truth)
         with Store(root, manifest) as store:
             records = {r["entity_id"]: r for r in store.entities("registry_mutation")}
             actions = {a["entity_id"]: a for a in store.entities("tool_event")}
@@ -50,7 +53,7 @@ def validate_case(root: Path, truth: Path) -> dict:
             )
             spoofed = {s["event_uuid"] for s in key["spoofed"]} & captured
             flags = store.query(
-                "SELECT * FROM relations WHERE kind='executed' AND method='complete_registry_absence'"
+                "SELECT * FROM relations WHERE kind='executed' AND method IN ('complete_registry_absence','receipt_binding_mismatch')"
             )
             flagged = {
                 actions[f["subject_id"]]["attrs"]["event_uuid"]
@@ -100,6 +103,7 @@ def validate_case(root: Path, truth: Path) -> dict:
                 "errors": details,
                 "unscored": {
                     "launched": "No independently observed background job in in-process stages",
+                    "refresh_ordering": "The in-process stage shares one clock, so LQ7 ordering is not independently scored",
                 },
             }
             entities = {
@@ -164,6 +168,28 @@ def validate_case(root: Path, truth: Path) -> dict:
                 else None,
                 "confident_errors": len(predicted_reads - truth_reads),
             }
+            # LQ8 as a completed answer: which reads actually served the protected fixture.
+            fixture = next(
+                (row["payload"] for row in key["audit"] if row["kind"] == "fixture"), None
+            )
+            truth_exposed = {
+                (row["ts"], row["route"], row["name"], row["status"])
+                for row in key["audit"]
+                if row["kind"] == "read" and fixture is not None and row.get("payload") == fixture
+            }
+            predicted_exposed = {
+                (r["time_lower"], r["attrs"]["route"], r["attrs"]["name"], r["attrs"]["status"])
+                for r in fixture_exposure(store)["matched"]
+            }
+            result["fixture_exposure"] = {
+                "precision": len(predicted_exposed & truth_exposed) / len(predicted_exposed)
+                if predicted_exposed
+                else None,
+                "recall": len(predicted_exposed & truth_exposed) / len(truth_exposed)
+                if truth_exposed
+                else None,
+                "confident_errors": len(predicted_exposed - truth_exposed),
+            }
         directory = root / "reports" / uuid4().hex
         directory.mkdir(parents=True)
         path = directory / "validation.json"
@@ -177,7 +203,10 @@ def validate_case(root: Path, truth: Path) -> dict:
         update_manifest_stage(
             manifest,
             "validate",
-            params={"truth_input_sha256": sha256_file(truth / "bindings.jsonl")},
+            params={
+                "truth_input_sha256": sha256_file(truth / "bindings.jsonl"),
+                "case_config_sha256": config_sha256,
+            },
         )
     shutil.copyfile(path, root / "validation.json")
     return result

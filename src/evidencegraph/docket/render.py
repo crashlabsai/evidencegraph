@@ -8,6 +8,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from evidencegraph.case import configuration
+from evidencegraph.derive import configuration_sha256, require_current_configuration
 from evidencegraph.docket.answers import answers
 from evidencegraph.manifest import atomic_json, update_manifest_stage
 from evidencegraph.provenance import sha256_file
@@ -20,6 +21,7 @@ def escape(value: object) -> str:
 
 
 def compute_docket(root: Path, manifest: dict) -> dict:
+    require_current_configuration(root, manifest)
     config = configuration(root)
     with Store(root, manifest) as store:
         rows = answers(store, config, manifest)
@@ -188,7 +190,9 @@ def render(root: Path) -> Path:
             }
             for name in ("docket.json", "DOCKET.md")
         }
-        update_manifest_stage(manifest, "docket")
+        update_manifest_stage(
+            manifest, "docket", params={"case_config_sha256": configuration_sha256(root)}
+        )
     for name in ("docket.json", "DOCKET.md"):
         shutil.copyfile(destination / name, root / name)
     return root / "DOCKET.md"

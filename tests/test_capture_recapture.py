@@ -17,6 +17,9 @@ def test_dependent_capture_not_mislabelled_as_population_bound():
     estimate = chapman(50, 50, 50, violations=("same source",))
     assert estimate.assumption_violations
     assert "not a population bound" in estimate.interpretation
+    # Fabricated or mislinked units mean the union is not automatically a lower bound.
+    assert "is a lower bound" not in estimate.interpretation
+    assert "verified member" in chapman(12, 11, 9, violations=("spoofable",)).interpretation
 
 
 def test_empty_and_invalid_counts():

@@ -1,0 +1,41 @@
+name: Investigator / reviewer feedback
+description: Would this help a real reconstruction or incident review?
+title: "[review] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Useful feedback for this project is whether a docket beats your current log/SQL workflow on a real case — not whether the demo looks polished.
+  - type: dropdown
+    id: role
+    attributes:
+      label: Context
+      options:
+        - Incident response or security
+        - Evaluation or audit
+        - Academic or research
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: useful
+    attributes:
+      label: What would make this useful (or not) in your work?
+      description: Missing joins, wrong status vocabulary, citation friction, setup cost, or places the docket overclaims.
+    validations:
+      required: true
+  - type: textarea
+    id: case
+    attributes:
+      label: Case shape (optional)
+      description: Public or synthetic description only. No secrets, no corpora you cannot share.
+  - type: checkboxes
+    id: criteria
+    attributes:
+      label: Pilot criteria worth scoring (optional)
+      options:
+        - label: No unsupported high-confidence accusations on the challenge set
+        - label: Every confident finding has a resolvable relevant citation
+        - label: A second person can reproduce the key answers from the bundle
+        - label: It saves enough investigation or handoff time to justify setup

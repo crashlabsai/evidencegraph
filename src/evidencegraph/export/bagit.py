@@ -10,6 +10,7 @@ import shutil
 import tempfile
 from pathlib import Path, PurePosixPath
 
+from evidencegraph.derive import require_current_configuration
 from evidencegraph.manifest import case_mutation_lock, read_manifest
 from evidencegraph.provenance import sha256_file, verify_file_identity
 from evidencegraph.schema import Relation
@@ -97,6 +98,7 @@ def export_bundle(case: Path, dest: Path) -> dict:
             manifest = read_manifest(case)
             if not manifest.get("reports"):
                 raise ValueError("render a current docket before export")
+            require_current_configuration(case, manifest)
             for name in sorted(case_files(manifest)):
                 source = safe_path(case, name)
                 target = temporary / "data" / name

@@ -58,7 +58,7 @@ def acquire(
         raise ValueError(f"not a regular evidence file: {source}")
     digest = sha256_file(source)
     size = source.stat().st_size
-    identifier = witness_id(digest)
+    identifier = witness_id(digest, adapter=adapter, filename=source.name)
     relative = Path("evidence") / identifier / source.name
     destination = root / relative
     destination.parent.mkdir(parents=True, exist_ok=True)

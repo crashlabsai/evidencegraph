@@ -3,11 +3,11 @@
   "archive_sha256": "eb68aa12d26bf189d8bfc4ce47f4d8af66ae5ba7ebbadd429738297a3cbb25ae",
   "files": [
     {
-      "witness_id": "w-4053f8218e77e5e2",
+      "witness_id": "w-59bd874422064f77",
       "filename": "azure-20260907.json",
       "sha256": "4053f8218e77e5e2c4816ec2a0ea33559c4dcf47ad9f2a498e61fc71361e4c07",
       "size_bytes": 4316414,
-      "acquired_at": "2026-09-11T11:23:34.389512+00:00",
+      "acquired_at": "2026-09-11T20:55:30.731544+00:00",
       "trust_domain": "microsoft-servicetags",
       "adapter": "reference-list",
       "clock_ids": [],
@@ -15,23 +15,23 @@
       "download_url": "https://download.microsoft.com/download/7/1/d/71d86715-5596-4529-9b13-da13a5de5b63/ServiceTags_Public_20260907.json"
     },
     {
-      "witness_id": "w-1e4a605152e85057",
+      "witness_id": "w-3610d77587a66704",
       "filename": "chatgpt-user.json",
-      "sha256": "1e4a605152e8505742072ee93703996a7047d88e6476cecdaff15c4e09b6874e",
-      "size_bytes": 7518,
-      "acquired_at": "2026-09-11T11:23:34.420352+00:00",
+      "sha256": "8fb711cdc09b0f9f0161e615f5d791a9bffc248b285000431874f425c9dde43a",
+      "size_bytes": 7699,
+      "acquired_at": "2026-09-11T20:55:30.733671+00:00",
       "trust_domain": "openai-allowlist",
       "adapter": "reference-list",
       "clock_ids": [],
-      "emitted_citations": 208,
+      "emitted_citations": 213,
       "download_url": "https://openai.com/chatgpt-user.json"
     },
     {
-      "witness_id": "w-1f9f80864910d4c4",
+      "witness_id": "w-fd35142af7ac0e37",
       "filename": "coverage-gaps.csv",
       "sha256": "1f9f80864910d4c49e8ff24a35b1931b87eaeae9d1282c3efa3d6d7b0ee279dd",
       "size_bytes": 82085,
-      "acquired_at": "2026-09-11T10:57:11.544867+00:00",
+      "acquired_at": "2026-09-11T20:55:30.267239+00:00",
       "trust_domain": "publisher-export",
       "adapter": "collusion-wiki",
       "clock_ids": [],
@@ -39,135 +39,130 @@
       "download_url": "https://collusion.wiki/explorer/download/coverage-gaps.csv"
     },
     {
-      "witness_id": "w-588584295f1c4a7c",
+      "witness_id": "w-12554601c249e1bc",
       "filename": "events.jsonl",
       "sha256": "588584295f1c4a7c3d90b04075ab151504f165ff069534d935cda08853ec28b1",
       "size_bytes": 8543896,
-      "acquired_at": "2026-09-11T10:57:11.584708+00:00",
+      "acquired_at": "2026-09-11T20:55:30.328950+00:00",
       "trust_domain": "publisher-export",
       "adapter": "collusion-wiki",
       "clock_ids": [
-        "w-588584295f1c4a7c:published_time",
-        "w-588584295f1c4a7c:rclog.unix_ts",
-        "w-588584295f1c4a7c:request_time",
-        "w-588584295f1c4a7c:success_time"
+        "w-12554601c249e1bc:published_time",
+        "w-12554601c249e1bc:rclog.unix_ts",
+        "w-12554601c249e1bc:request_time",
+        "w-12554601c249e1bc:success_time"
       ],
       "emitted_citations": 19913,
-      "download_url": "https://collusion.wiki/explorer/download/full-wiki-logs.zip",
-      "archive_member": "events.jsonl"
+      "download_url": "https://collusion.wiki/explorer/download/events.jsonl"
     },
     {
-      "witness_id": "w-d94aecd84baecda4",
+      "witness_id": "w-0e4fc04d7648edec",
       "filename": "labels.jsonl",
       "sha256": "d94aecd84baecda46344f5b8726a95a9c81e7e41a1c0969fc89a90c8906f0388",
       "size_bytes": 1471940,
-      "acquired_at": "2026-09-11T10:57:11.591834+00:00",
+      "acquired_at": "2026-09-11T20:55:30.341009+00:00",
       "trust_domain": "publisher-export",
       "adapter": "collusion-wiki",
       "clock_ids": [],
       "emitted_citations": 3103,
-      "download_url": "https://collusion.wiki/explorer/download/full-wiki-logs.zip",
-      "archive_member": "labels.jsonl"
+      "download_url": "https://collusion.wiki/explorer/download/labels.jsonl"
     },
     {
-      "witness_id": "w-9ef4c6771d37e94a",
+      "witness_id": "w-154670cdae2c2a9b",
       "filename": "links.jsonl",
       "sha256": "9ef4c6771d37e94aa7e8448f8f2ce9fe78915729e2ef70cae6fcfbce58ef44d9",
       "size_bytes": 11527642,
-      "acquired_at": "2026-09-11T10:57:11.642428+00:00",
+      "acquired_at": "2026-09-11T20:55:30.398114+00:00",
       "trust_domain": "publisher-export",
       "adapter": "collusion-wiki",
       "clock_ids": [],
       "emitted_citations": 23877,
-      "download_url": "https://collusion.wiki/explorer/download/links.jsonl.gz"
+      "download_url": "https://collusion.wiki/explorer/download/links.jsonl"
     },
     {
-      "witness_id": "w-b6d53e16b5d9a6a0",
+      "witness_id": "w-136d2c9a119c2569",
       "filename": "manifest.json",
       "sha256": "b6d53e16b5d9a6a0a98d4577238835ee7a574d7d10a8f1312330b4e626c6ba2b",
       "size_bytes": 62254,
-      "acquired_at": "2026-09-11T10:57:11.643452+00:00",
+      "acquired_at": "2026-09-11T20:55:30.400503+00:00",
       "trust_domain": "publisher-export",
       "adapter": "collusion-wiki",
       "clock_ids": [],
       "emitted_citations": 1,
-      "download_url": "https://collusion.wiki/explorer/download/full-wiki-logs.zip",
-      "archive_member": "manifest.json"
+      "download_url": "https://collusion.wiki/explorer/download/manifest.json"
     },
     {
-      "witness_id": "w-130d34ef80b591f4",
+      "witness_id": "w-7c20b907a5b9bf12",
       "filename": "other-wikis.json",
       "sha256": "130d34ef80b591f49d123793d39dcd9d94ee5598b962803ee231047eea22e03a",
       "size_bytes": 34390,
-      "acquired_at": "2026-09-11T10:57:11.644113+00:00",
+      "acquired_at": "2026-09-11T20:55:30.402079+00:00",
       "trust_domain": "publisher-export",
       "adapter": "collusion-wiki",
       "clock_ids": [],
       "emitted_citations": 1,
-      "download_url": "https://collusion.wiki/explorer/download/other-wikis.json.gz"
+      "download_url": "https://collusion.wiki/explorer/download/other-wikis.json"
     },
     {
-      "witness_id": "w-92b296170b496b83",
+      "witness_id": "w-8ffa41d629589730",
       "filename": "pages.jsonl",
       "sha256": "92b296170b496b836cdf5ef783bed9465d2d75db7e1a0becec1c36c8b7c42cfd",
       "size_bytes": 2973326,
-      "acquired_at": "2026-09-11T10:57:11.657340+00:00",
+      "acquired_at": "2026-09-11T20:55:30.416454+00:00",
       "trust_domain": "publisher-export",
       "adapter": "collusion-wiki",
       "clock_ids": [],
       "emitted_citations": 4579,
-      "download_url": "https://collusion.wiki/explorer/download/full-wiki-logs.zip",
-      "archive_member": "pages.jsonl"
+      "download_url": "https://collusion.wiki/explorer/download/pages.jsonl"
     },
     {
-      "witness_id": "w-f41af25fa0b16f88",
+      "witness_id": "w-67eeb2b719910d57",
       "filename": "records.jsonl",
       "sha256": "f41af25fa0b16f88522ba9924f175400eeb9461332568eaca39a34010bb746ed",
       "size_bytes": 21590553,
-      "acquired_at": "2026-09-11T10:57:11.771965+00:00",
+      "acquired_at": "2026-09-11T20:55:30.512162+00:00",
       "trust_domain": "publisher-export",
       "adapter": "collusion-wiki",
       "clock_ids": [],
       "emitted_citations": 13703,
-      "download_url": "https://collusion.wiki/explorer/download/records.jsonl.gz"
+      "download_url": "https://collusion.wiki/explorer/download/records.jsonl"
     },
     {
-      "witness_id": "w-60df4a515178230a",
+      "witness_id": "w-7579fc93b2a49ee9",
       "filename": "revisions.jsonl",
       "sha256": "60df4a515178230aa952d9f64f6215aea4bd95ab2f05e31e484cf9b887e3f793",
       "size_bytes": 41521492,
-      "acquired_at": "2026-09-11T10:57:11.949897+00:00",
+      "acquired_at": "2026-09-11T20:55:30.707837+00:00",
       "trust_domain": "publisher-export",
       "adapter": "collusion-wiki",
       "clock_ids": [
-        "w-60df4a515178230a:revision.pref_ts",
-        "w-60df4a515178230a:write_date",
-        "w-60df4a515178230a:archived_at",
-        "w-60df4a515178230a:request_time",
-        "w-60df4a515178230a:success_time"
+        "w-7579fc93b2a49ee9:revision.pref_ts",
+        "w-7579fc93b2a49ee9:write_date",
+        "w-7579fc93b2a49ee9:archived_at",
+        "w-7579fc93b2a49ee9:request_time",
+        "w-7579fc93b2a49ee9:success_time"
       ],
       "emitted_citations": 14591,
-      "download_url": "https://collusion.wiki/explorer/download/full-wiki-logs.zip",
-      "archive_member": "revisions.jsonl"
+      "download_url": "https://collusion.wiki/explorer/download/revisions.jsonl"
     },
     {
-      "witness_id": "w-40b49e3e7e223dd3",
+      "witness_id": "w-b1d6cab0ae873e24",
       "filename": "shortener-logs.json",
       "sha256": "40b49e3e7e223dd349aa8a465aa7dabd9db8515b7f0533f047c8e1087d5ef01d",
       "size_bytes": 123273,
-      "acquired_at": "2026-09-11T10:57:11.951624+00:00",
+      "acquired_at": "2026-09-11T20:55:30.710327+00:00",
       "trust_domain": "publisher-export",
       "adapter": "collusion-wiki",
       "clock_ids": [],
       "emitted_citations": 1,
-      "download_url": "https://collusion.wiki/explorer/download/shortener-logs.json.gz"
+      "download_url": "https://collusion.wiki/explorer/download/shortener-logs.json"
     },
     {
-      "witness_id": "w-1091014ca713391d",
+      "witness_id": "w-de014cc48f0214b3",
       "filename": "site-coverage.csv",
       "sha256": "1091014ca713391dd68d9c658550b2a00e15cee83e53513aa07f9b1862efda01",
       "size_bytes": 111974,
-      "acquired_at": "2026-09-11T10:57:11.952572+00:00",
+      "acquired_at": "2026-09-11T20:55:30.712292+00:00",
       "trust_domain": "publisher-export",
       "adapter": "collusion-wiki",
       "clock_ids": [],

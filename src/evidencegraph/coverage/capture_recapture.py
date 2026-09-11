@@ -59,7 +59,7 @@ def chapman(
         level=level,
         assumptions=ASSUMPTIONS,
         assumption_violations=violations,
-        interpretation=f"Non-identifiable under observed dependence; only observed union {n_a + n_b - m} is a lower bound. Model interval is not a population bound."
+        interpretation=f"Non-identifiable under observed dependence. The observed union {n_a + n_b - m} counts linked units from both witnesses; it bounds the population from below only if every unit is a verified member with exact linkage. Model interval is not a population bound."
         if violations
         else "Conditional model estimate; parametric hypergeometric percentile bootstrap",
     )

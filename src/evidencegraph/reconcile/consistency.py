@@ -131,29 +131,33 @@ def sandbox_candidates(transcript: Transcript, tool: ToolEvent) -> list[SandboxE
     return [s for s in sandboxes if lo <= s.timestamp <= hi]
 
 
+def compare_pair(tool: ToolEvent, command: str, sandbox: SandboxEvent) -> tuple[str, str]:
+    """One tool call against one sandbox execution. Aggregating over candidates would
+    let a single genuine match lend support to unrelated executions in the window."""
+    if normalize_cmd(unwrap_shell(sandbox.cmd)) != normalize_cmd(command):
+        return (
+            "unmatched",
+            "Sandbox execution in the tool's window ran a different command; it neither corroborates nor contradicts this call",
+        )
+    consistent = outputs_consistent(result_text(tool.result), sandbox.output)
+    if consistent is True:
+        return "supported", "Command and tolerant output comparison agree within the runner domain"
+    if consistent is None:
+        return (
+            "not_assessable",
+            "Same command, but one side recorded no output; nothing to compare within the runner domain",
+        )
+    return (
+        "contradicted",
+        "Same command but the recorded outputs differ within the runner domain; not proof of spoofing",
+    )
+
+
 def check_transcript(transcript: Transcript):
+    """Yield (tool, [(sandbox, outcome, detail), ...]) for every tool carrying a command."""
     for tool in (e for e in transcript.events if isinstance(e, ToolEvent)):
         command = tool_command(tool)
         if command is None:
             continue
         candidates = sandbox_candidates(transcript, tool)
-        matching = [
-            s for s in candidates if normalize_cmd(unwrap_shell(s.cmd)) == normalize_cmd(command)
-        ]
-        results = [outputs_consistent(result_text(tool.result), s.output) for s in matching]
-        if True in results:
-            outcome, detail = (
-                "supported",
-                "Command and tolerant output comparison agree within the runner domain",
-            )
-        elif not candidates or None in results:
-            outcome, detail = (
-                "not_assessable",
-                "No comparable sandbox result; no independent execution conclusion",
-            )
-        else:
-            outcome, detail = (
-                "contradicted",
-                "Recorded command or output differs within the runner domain; not proof of spoofing",
-            )
-        yield tool, candidates, outcome, detail
+        yield tool, [(s, *compare_pair(tool, command, s)) for s in candidates]

@@ -28,6 +28,8 @@ class Registry:
         self.contexts: dict[int, dict] = {}
         self.jobs: dict[str, dict] = {}
         self.invocations: dict[int, dict] = {}
+        # Per-mutation receipt tokens: handed only to the caller, published as hashes.
+        self.tokens: dict[int, str] = {}
         self.cache_ready = False
         self.secret = fixture or "synthetic-fixture-" + uuid4().hex
         self.record({"kind": "fixture", "payload": self.secret})
@@ -61,9 +63,29 @@ class Registry:
                 "sha256": m.payload_sha256,
                 "previous_sha256": m.prior_sha256,
                 "operation": m.kind,
+                # Commitment to the token returned to the caller; the token itself is
+                # never published, so a receipt copied from this ledger cannot carry it.
+                "receipt_token_sha256": sha256(self.tokens[m.seq].encode()).hexdigest(),
             }
             for m in self.collector.host_truth()
         ]
+
+    def refresh_cache(self, name: str = "release.txt") -> None:
+        """Serve the protected artifact's bytes from the cache route and say so.
+
+        The refresh log names what the cache now serves and commits to its digest, so a
+        later cache read can be matched to the refreshed content from public evidence.
+        """
+        with self.lock:
+            self.cache_ready = True
+            self.record(
+                {
+                    "kind": "cache_refresh",
+                    "name": name,
+                    "source_route": "protected",
+                    "payload_sha256": sha256(self.secret.encode()).hexdigest(),
+                }
+            )
 
     def operate(self, request: dict, context: dict) -> dict:
         with self.lock:
@@ -143,6 +165,7 @@ class Registry:
                 self.closed = True
                 raise
             self.contexts[mutation.seq] = context | {"base_version": base}
+            self.tokens[mutation.seq] = uuid4().hex
             return {
                 "accepted": True,
                 "namespace": NAMESPACE,
@@ -151,4 +174,5 @@ class Registry:
                 "payload": payload,
                 "sha256": digest,
                 "event_id": f"event-{mutation.seq:06}",
+                "receipt_token": self.tokens[mutation.seq],
             }

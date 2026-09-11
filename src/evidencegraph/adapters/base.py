@@ -70,11 +70,14 @@ class Builder:
         method: str = "source_field",
         rationale: str = "Published source assertion; not actor authentication",
         outcome: Outcome = Outcome.SUPPORTED,
+        also: tuple[Citation, ...] = (),
     ) -> None:
         identifier = relation_id(kind, subject.entity_id, obj.entity_id, method)
         if identifier in self.seen:
             return
         self.cite(ref)
+        for extra in also:
+            self.cite(extra)
         self.rows.append(
             (
                 "relations",
@@ -87,7 +90,9 @@ class Builder:
                     method=method,
                     rationale=rationale,
                     witness_ids=(self.witness.witness_id,),
-                    citation_ids=(ref.citation_id,),
+                    citation_ids=tuple(
+                        dict.fromkeys([ref.citation_id, *(c.citation_id for c in also)])
+                    ),
                     candidates=(obj.entity_id,)
                     if kind in {"produced", "executed"} and outcome == Outcome.SUPPORTED
                     else (),

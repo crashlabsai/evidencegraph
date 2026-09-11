@@ -3,12 +3,12 @@
     {
       "assumptions": [],
       "citation_ids": [
-        "ref-d1ca624546f4fa644b0c465153d4b3d7",
-        "ref-98ee496d4807e3be3a6958d6930bdb92",
-        "ref-514261689040b2c8add05cbad214a0a8",
-        "ref-dbb283f2dfc0bbe19c5221d94cde4097",
-        "ref-f3b6497c4849c5e3bc0ab1cb8460e498",
-        "ref-dc489f6e11f755af4c1a603935c4abd3"
+        "ref-e4396e45f89ed713237d5267a7053622",
+        "ref-b3254e227591ad47bde9ee1b9977c155",
+        "ref-63ab9e52daf459643379662e37e48773",
+        "ref-405f4d3955c946f14ff46f2add7aee30",
+        "ref-0acd0a7150eb1ba2725f3986264eed9a",
+        "ref-58059f6460cc0494be11dddf9df37367"
       ],
       "coverage_ids": [],
       "gaps": [
@@ -24,8 +24,8 @@
         "per_wiki": [
           {
             "citation_ids": [
-              "ref-5bf8de736e138bc94cdc9f7eb6ea6c5a",
-              "ref-d0449f501eab57c6f5e761da0f3b7b75"
+              "ref-3bc5c431b30b1dd82fa2641d65078d03",
+              "ref-0419bc78914b3b28ab774b65ad0c1004"
             ],
             "end_interval": [
               "2026-06-22T08:46:17+00:00",
@@ -45,8 +45,8 @@
           },
           {
             "citation_ids": [
-              "ref-17ea9c402c60b20bbe9cf5ea0661b033",
-              "ref-31c777e3ecc5fa6e4e83a95d1b178357"
+              "ref-fb40ef78c6ab4e77ee50296316471123",
+              "ref-ba7a490a3a7289f80f8094ed57619934"
             ],
             "end_interval": [
               "2026-07-02T17:24:39+00:00",
@@ -67,8 +67,8 @@
           },
           {
             "citation_ids": [
-              "ref-d61995a989274dbf580fed5904ca17b7",
-              "ref-6f40e44bd64257d649dfb64ea5a9e6bb"
+              "ref-c4767ddd165c712a7a67288c2a0193da",
+              "ref-82fb46e44e6afa8198f9fb0ad8f1e72a"
             ],
             "end_interval": [
               "2026-07-01T00:19:38+00:00",
@@ -89,8 +89,8 @@
           },
           {
             "citation_ids": [
-              "ref-378127504bc2c9643f22bbda31b651ee",
-              "ref-ca7b3a8c4b5b2e13279f5281124990e9"
+              "ref-dd14f8dbc791d6a7f7e5439ecdf3228d",
+              "ref-68500f0f9a23b88f3943db147d49464a"
             ],
             "end_interval": [
               "2026-07-02T17:51:21+00:00",
@@ -117,14 +117,14 @@
     {
       "assumptions": [],
       "citation_ids": [
-        "ref-312de219eb57ca44204dfacefbcf1e20",
-        "ref-b8f74c824f938edf418a82ab856ba742",
-        "ref-bc03862458e1475e4df6f927ea3db1d1",
-        "ref-d5bc333c6744f7ec4cbccc4cb2e025f0",
-        "ref-be53213784bd9fc6d71c643194a6fa82",
-        "ref-c41266bd06e1ee9891b8de1441a76c78",
-        "ref-d0f2e689522704da42f7f06973e95ce6",
-        "ref-e1ae0893cdb76050877d315a9f03cd23"
+        "ref-ec6885ddd25b8f63221cb7f860ea98f4",
+        "ref-fed38fc80966381285ee1e5cffef23f9",
+        "ref-aa125b3b411e4508265be67f94f72307",
+        "ref-dec7b8ffd9aaf043c6b70df5a0f9ee19",
+        "ref-eb9142fb919bb898b9dc07840887a08a",
+        "ref-779b4500e11dbe3eafd30d8ebd3cb0e9",
+        "ref-d0a4c4b33256d9fb46f0240d8878a334",
+        "ref-b467f03df6cbabf22bc14adc38a2dff6"
       ],
       "coverage_ids": [],
       "gaps": [
@@ -138,7 +138,7 @@
         "publisher_human_label_revisions": 31,
         "reference_matches": [
           {
-            "n": 177,
+            "n": 178,
             "outcome": "ambiguous"
           }
         ],
@@ -151,12 +151,12 @@
     {
       "assumptions": [],
       "citation_ids": [
-        "ref-d326f72f5975878ebf4d01bc9a98f577",
-        "ref-aa7713a8be47b4ca8f8d9c3a04dfae9d",
-        "ref-6f72646ccc1ad140605e6555eacb15dd",
-        "ref-a91aa3d1d54d56a9e3256a8915c13c3b",
-        "ref-b4e36619f3cf7fa44943c0a89502ff8e",
-        "ref-83afbd86eca537baa71c7ee6faf33343"
+        "ref-20f8b3d46a60560996a7888c69cfc6b0",
+        "ref-94726d329d65222ea9773d64a707a210",
+        "ref-b28a2b6d3efa595b288cabbb55ecdbe3",
+        "ref-a5531ac7d6eb749b76ea2e38d6a5425f",
+        "ref-975fcc1daa94d04f6cf918a8290bb523",
+        "ref-ba22cfb64a8135bfba3e8da24b3ba59b"
       ],
       "coverage_ids": [],
       "gaps": [
@@ -474,8 +474,8 @@
     {
       "assumptions": [],
       "citation_ids": [
-        "ref-d1ca624546f4fa644b0c465153d4b3d7",
-        "ref-98ee496d4807e3be3a6958d6930bdb92"
+        "ref-e4396e45f89ed713237d5267a7053622",
+        "ref-b3254e227591ad47bde9ee1b9977c155"
       ],
       "coverage_ids": [],
       "gaps": [
@@ -495,12 +495,12 @@
     {
       "assumptions": [],
       "citation_ids": [
-        "ref-d0f2e689522704da42f7f06973e95ce6",
-        "ref-e1ae0893cdb76050877d315a9f03cd23",
-        "ref-c3162b420a6464161ebacd25a0129f98",
-        "ref-da3444bdf685cd6685aa08e3b8df90df",
-        "ref-ab380e4034c42b22746a3c27808c2fe1",
-        "ref-3d9796e9dce202456ba3a74fa77ad7dc"
+        "ref-d0a4c4b33256d9fb46f0240d8878a334",
+        "ref-b467f03df6cbabf22bc14adc38a2dff6",
+        "ref-3c5c94b889839af3a60d9affa6db59e9",
+        "ref-512e6f1f5055d97edc17bde048d9e958",
+        "ref-4f48e1dad10f2852d716f19ae18fbce8",
+        "ref-d7f919a57e63a8dee24b611f813f88b5"
       ],
       "coverage_ids": [],
       "gaps": [
@@ -529,12 +529,12 @@
     {
       "assumptions": [],
       "citation_ids": [
-        "ref-b706f2e00c6d1f112ee0e8bbcfc51d77",
-        "ref-ca9ad3425743521133ab8f2d81a8f9a5",
-        "ref-6b270ee1577d3e767fd9d75fd7a509d9",
-        "ref-ebfda805fe438968f2ce3b3472bbf396",
-        "ref-945a0cdcff69d0ac8024f0feb28b9baf",
-        "ref-9f8b3c144487c9b3b3cd562246cbd173"
+        "ref-3ff18ea8912a3360598449d4cbbbbed9",
+        "ref-0cd8fb6efec5a7c779ead150506d99d8",
+        "ref-a01a0827dd852acbdce712573c9b6dda",
+        "ref-99a0653329ce47fd12a4eb85aa37cfe8",
+        "ref-5dcee10a48c8a8ae72c0b0ad0add3a21",
+        "ref-a0cce1c7b438748b40989908b1e3f46a"
       ],
       "coverage_ids": [],
       "gaps": [
@@ -545,35 +545,35 @@
       "numbers": {
         "earliest_observed": [
           {
-            "citation_id": "ref-b706f2e00c6d1f112ee0e8bbcfc51d77",
+            "citation_id": "ref-3ff18ea8912a3360598449d4cbbbbed9",
             "label": "OpenDataResearcher",
             "revision": "dse~Node50166915Test@1",
             "time_lower": "2026-05-26T09:50:01+00:00",
             "time_upper": "2026-05-26T09:50:03+00:00"
           },
           {
-            "citation_id": "ref-ca9ad3425743521133ab8f2d81a8f9a5",
+            "citation_id": "ref-0cd8fb6efec5a7c779ead150506d99d8",
             "label": "ResearchHelper4",
             "revision": "dse~FooBarPct2526Baz@1",
             "time_lower": "2026-05-26T09:56:32+00:00",
             "time_upper": "2026-05-26T09:56:34+00:00"
           },
           {
-            "citation_id": "ref-6b270ee1577d3e767fd9d75fd7a509d9",
+            "citation_id": "ref-a01a0827dd852acbdce712573c9b6dda",
             "label": "ResearcherABC",
             "revision": "dse~TmpOurPage92837ZZ@1",
             "time_lower": "2026-05-26T10:31:33+00:00",
             "time_upper": "2026-05-26T10:31:35+00:00"
           },
           {
-            "citation_id": "ref-ebfda805fe438968f2ce3b3472bbf396",
+            "citation_id": "ref-99a0653329ce47fd12a4eb85aa37cfe8",
             "label": "AsciiNormalizer",
             "revision": "dse~RecentChanges@26",
             "time_lower": "2026-05-26T13:13:20+00:00",
             "time_upper": "2026-05-26T13:13:22+00:00"
           },
           {
-            "citation_id": "ref-945a0cdcff69d0ac8024f0feb28b9baf",
+            "citation_id": "ref-5dcee10a48c8a8ae72c0b0ad0add3a21",
             "label": "OpenDataResearchBot",
             "revision": "dse~QuarterlyBalancePublicSources@1",
             "time_lower": "2026-05-26T13:51:54+00:00",
@@ -605,12 +605,12 @@
     {
       "assumptions": [],
       "citation_ids": [
-        "ref-d0f2e689522704da42f7f06973e95ce6",
-        "ref-e1ae0893cdb76050877d315a9f03cd23",
-        "ref-c3162b420a6464161ebacd25a0129f98",
-        "ref-da3444bdf685cd6685aa08e3b8df90df",
-        "ref-ab380e4034c42b22746a3c27808c2fe1",
-        "ref-3d9796e9dce202456ba3a74fa77ad7dc"
+        "ref-d0a4c4b33256d9fb46f0240d8878a334",
+        "ref-b467f03df6cbabf22bc14adc38a2dff6",
+        "ref-3c5c94b889839af3a60d9affa6db59e9",
+        "ref-512e6f1f5055d97edc17bde048d9e958",
+        "ref-4f48e1dad10f2852d716f19ae18fbce8",
+        "ref-d7f919a57e63a8dee24b611f813f88b5"
       ],
       "coverage_ids": [],
       "gaps": [
@@ -633,7 +633,7 @@
               "Exact record linkage without false matches"
             ],
             "id": "cr-published-save-events-stored-revisions-record",
-            "interpretation": "Non-identifiable under observed dependence; only observed union 14591 is a lower bound. Model interval is not a population bound.",
+            "interpretation": "Non-identifiable under observed dependence. The observed union 14591 counts linked units from both witnesses; it bounds the population from below only if every unit is a verified member with exact linkage. Model interval is not a population bound.",
             "interval": [
               14591.0,
               14591.0
@@ -660,12 +660,12 @@
     {
       "assumptions": [],
       "citation_ids": [
-        "ref-d1ca624546f4fa644b0c465153d4b3d7",
-        "ref-98ee496d4807e3be3a6958d6930bdb92",
-        "ref-514261689040b2c8add05cbad214a0a8",
-        "ref-dbb283f2dfc0bbe19c5221d94cde4097",
-        "ref-f3b6497c4849c5e3bc0ab1cb8460e498",
-        "ref-dc489f6e11f755af4c1a603935c4abd3"
+        "ref-e4396e45f89ed713237d5267a7053622",
+        "ref-b3254e227591ad47bde9ee1b9977c155",
+        "ref-63ab9e52daf459643379662e37e48773",
+        "ref-405f4d3955c946f14ff46f2add7aee30",
+        "ref-0acd0a7150eb1ba2725f3986264eed9a",
+        "ref-58059f6460cc0494be11dddf9df37367"
       ],
       "coverage_ids": [],
       "gaps": [
@@ -797,7 +797,7 @@
       "subkind": "link"
     },
     {
-      "n": 61013,
+      "n": 61018,
       "subkind": "network_prefix"
     },
     {
@@ -831,94 +831,94 @@
   "witnesses": [
     {
       "coverage_claim": "Published file; completeness not independently established",
-      "filename": "site-coverage.csv",
-      "sha256": "1091014ca713391dd68d9c658550b2a00e15cee83e53513aa07f9b1862efda01",
+      "filename": "labels.jsonl",
+      "sha256": "d94aecd84baecda46344f5b8726a95a9c81e7e41a1c0969fc89a90c8906f0388",
       "trust_domain": "publisher-export",
-      "witness_id": "w-1091014ca713391d"
-    },
-    {
-      "coverage_claim": "Published file; completeness not independently established",
-      "filename": "other-wikis.json",
-      "sha256": "130d34ef80b591f49d123793d39dcd9d94ee5598b962803ee231047eea22e03a",
-      "trust_domain": "publisher-export",
-      "witness_id": "w-130d34ef80b591f4"
-    },
-    {
-      "coverage_claim": "Reference-list snapshot at acquisition; historical applicability requires dated evidence",
-      "filename": "chatgpt-user.json",
-      "sha256": "1e4a605152e8505742072ee93703996a7047d88e6476cecdaff15c4e09b6874e",
-      "trust_domain": "openai-allowlist",
-      "witness_id": "w-1e4a605152e85057"
-    },
-    {
-      "coverage_claim": "Published file; completeness not independently established",
-      "filename": "coverage-gaps.csv",
-      "sha256": "1f9f80864910d4c49e8ff24a35b1931b87eaeae9d1282c3efa3d6d7b0ee279dd",
-      "trust_domain": "publisher-export",
-      "witness_id": "w-1f9f80864910d4c4"
-    },
-    {
-      "coverage_claim": "Reference-list snapshot at acquisition; historical applicability requires dated evidence",
-      "filename": "azure-20260907.json",
-      "sha256": "4053f8218e77e5e2c4816ec2a0ea33559c4dcf47ad9f2a498e61fc71361e4c07",
-      "trust_domain": "microsoft-servicetags",
-      "witness_id": "w-4053f8218e77e5e2"
-    },
-    {
-      "coverage_claim": "Published file; completeness not independently established",
-      "filename": "shortener-logs.json",
-      "sha256": "40b49e3e7e223dd349aa8a465aa7dabd9db8515b7f0533f047c8e1087d5ef01d",
-      "trust_domain": "publisher-export",
-      "witness_id": "w-40b49e3e7e223dd3"
+      "witness_id": "w-0e4fc04d7648edec"
     },
     {
       "coverage_claim": "Published file; completeness not independently established",
       "filename": "events.jsonl",
       "sha256": "588584295f1c4a7c3d90b04075ab151504f165ff069534d935cda08853ec28b1",
       "trust_domain": "publisher-export",
-      "witness_id": "w-588584295f1c4a7c"
-    },
-    {
-      "coverage_claim": "Published file; completeness not independently established",
-      "filename": "revisions.jsonl",
-      "sha256": "60df4a515178230aa952d9f64f6215aea4bd95ab2f05e31e484cf9b887e3f793",
-      "trust_domain": "publisher-export",
-      "witness_id": "w-60df4a515178230a"
-    },
-    {
-      "coverage_claim": "Published file; completeness not independently established",
-      "filename": "pages.jsonl",
-      "sha256": "92b296170b496b836cdf5ef783bed9465d2d75db7e1a0becec1c36c8b7c42cfd",
-      "trust_domain": "publisher-export",
-      "witness_id": "w-92b296170b496b83"
-    },
-    {
-      "coverage_claim": "Published file; completeness not independently established",
-      "filename": "links.jsonl",
-      "sha256": "9ef4c6771d37e94aa7e8448f8f2ce9fe78915729e2ef70cae6fcfbce58ef44d9",
-      "trust_domain": "publisher-export",
-      "witness_id": "w-9ef4c6771d37e94a"
+      "witness_id": "w-12554601c249e1bc"
     },
     {
       "coverage_claim": "Published file; completeness not independently established",
       "filename": "manifest.json",
       "sha256": "b6d53e16b5d9a6a0a98d4577238835ee7a574d7d10a8f1312330b4e626c6ba2b",
       "trust_domain": "publisher-export",
-      "witness_id": "w-b6d53e16b5d9a6a0"
+      "witness_id": "w-136d2c9a119c2569"
     },
     {
       "coverage_claim": "Published file; completeness not independently established",
-      "filename": "labels.jsonl",
-      "sha256": "d94aecd84baecda46344f5b8726a95a9c81e7e41a1c0969fc89a90c8906f0388",
+      "filename": "links.jsonl",
+      "sha256": "9ef4c6771d37e94aa7e8448f8f2ce9fe78915729e2ef70cae6fcfbce58ef44d9",
       "trust_domain": "publisher-export",
-      "witness_id": "w-d94aecd84baecda4"
+      "witness_id": "w-154670cdae2c2a9b"
+    },
+    {
+      "coverage_claim": "Reference-list snapshot at acquisition; historical applicability requires dated evidence",
+      "filename": "chatgpt-user.json",
+      "sha256": "8fb711cdc09b0f9f0161e615f5d791a9bffc248b285000431874f425c9dde43a",
+      "trust_domain": "openai-allowlist",
+      "witness_id": "w-3610d77587a66704"
+    },
+    {
+      "coverage_claim": "Reference-list snapshot at acquisition; historical applicability requires dated evidence",
+      "filename": "azure-20260907.json",
+      "sha256": "4053f8218e77e5e2c4816ec2a0ea33559c4dcf47ad9f2a498e61fc71361e4c07",
+      "trust_domain": "microsoft-servicetags",
+      "witness_id": "w-59bd874422064f77"
     },
     {
       "coverage_claim": "Published file; completeness not independently established",
       "filename": "records.jsonl",
       "sha256": "f41af25fa0b16f88522ba9924f175400eeb9461332568eaca39a34010bb746ed",
       "trust_domain": "publisher-export",
-      "witness_id": "w-f41af25fa0b16f88"
+      "witness_id": "w-67eeb2b719910d57"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "revisions.jsonl",
+      "sha256": "60df4a515178230aa952d9f64f6215aea4bd95ab2f05e31e484cf9b887e3f793",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-7579fc93b2a49ee9"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "other-wikis.json",
+      "sha256": "130d34ef80b591f49d123793d39dcd9d94ee5598b962803ee231047eea22e03a",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-7c20b907a5b9bf12"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "pages.jsonl",
+      "sha256": "92b296170b496b836cdf5ef783bed9465d2d75db7e1a0becec1c36c8b7c42cfd",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-8ffa41d629589730"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "shortener-logs.json",
+      "sha256": "40b49e3e7e223dd349aa8a465aa7dabd9db8515b7f0533f047c8e1087d5ef01d",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-b1d6cab0ae873e24"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "site-coverage.csv",
+      "sha256": "1091014ca713391dd68d9c658550b2a00e15cee83e53513aa07f9b1862efda01",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-de014cc48f0214b3"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "coverage-gaps.csv",
+      "sha256": "1f9f80864910d4c49e8ff24a35b1931b87eaeae9d1282c3efa3d6d7b0ee279dd",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-fd35142af7ac0e37"
     }
   ]
 }

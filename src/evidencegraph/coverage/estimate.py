@@ -42,28 +42,10 @@ def derive_coverage(store, config, manifest, *, level: float, seed: int):
                     level=level,
                 ),
             )
-            k = sum(r["outcome"] == "supported" for r in rows)
-            claims = [
-                e
-                for e in store.entities("tool_event")
-                if e["attrs"].get("function") == "registry_write"
-            ]
-            yield (
-                "capture_recapture",
-                chapman(
-                    len(records),
-                    len(claims),
-                    k,
-                    seed=seed,
-                    level=level,
-                    witness_a="registry",
-                    witness_b="transcripts",
-                    violations=(
-                        "Transcripts and registry are causally coupled; transcript claims may be spoofed",
-                        "Missingness may be clustered by session",
-                    ),
-                ),
-            )
+            # No capture-recapture here: transcript claims can be fabricated, so they are
+            # not a second capture of the population, and the declaration already
+            # enumerates every record. Counting claims as members inflated the union
+            # above the true population.
     revisions = store.entities("revision")
     if revisions:
         labels = store.entities("label")

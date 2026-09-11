@@ -24,8 +24,8 @@ Witness inventory (full hashes, intervals and citations in [dsewiki-docket.json]
 | Sources | Trust domain | Files |
 |---|---|---:|
 | azure-20260907.json | microsoft-servicetags | 1 |
-| Source files | publisher-export | 11 |
 | chatgpt-user.json | openai-allowlist | 1 |
+| Source files | publisher-export | 11 |
 
 Known gaps: events.jsonl save rows are generated from revisions, not all save requests. No authenticated actor identities; human labels are publisher assertions. Observed write-date cut, not true swarm start/end; reported accuracy is not independently calibrated. Diff ancestry and identical text do not establish who invented a technique or causal copying.
 

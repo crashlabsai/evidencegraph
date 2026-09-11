@@ -3,8 +3,10 @@
 from evidencegraph.provenance import sha256_text
 
 
-def witness_id(sha256: str) -> str:
-    return f"w-{sha256[:16]}"
+def witness_id(sha256: str, *, adapter: str = "", filename: str = "") -> str:
+    # A witness is one observation of some bytes, not the bytes themselves: the same
+    # content may legitimately be acquired as two differently named observations.
+    return "w-" + sha256_text(f"{sha256}\0{adapter}\0{filename}")[:16]
 
 
 def entity_id(kind: str, witness: str, locator: str) -> str:

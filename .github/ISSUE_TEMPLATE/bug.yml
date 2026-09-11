@@ -1,0 +1,40 @@
+name: Bug
+description: Something incorrect, misleading, or broken in the tool
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a wrong **supported** finding, false accusation, or citation that points at the wrong evidence, prefer a [private security advisory](https://github.com/crashlabsai/evidencegraph/security/advisories/new) if the failure mode is not already documented.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Expected vs actual, including status labels (supported / ambiguous / contradicted / …).
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Commands, seed, adapter, or a minimal public fixture. Do not attach private truth or redistributed corpus bodies unless you have rights to share them.
+      value: |
+        ```sh
+        uv sync --locked
+        uv run python scripts/demo.py cases/demo --seed 7
+        ```
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Commit or tag
+      placeholder: main @ <sha> or eg-prototype-v0.1
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: I checked the README known limits and docs/evidencegraph.md
+        - label: This is not a request for live paid model scanning

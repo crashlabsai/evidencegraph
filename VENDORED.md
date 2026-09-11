@@ -3,6 +3,9 @@
 Origin: [crashlabsai/crossledger, commit 9a38525](https://github.com/crashlabsai/crossledger/tree/9a38525),
 declared MIT in its `pyproject.toml`. Copyright remains with the original authors.
 This repository is also MIT licensed. No incident dataset bytes are vendored.
+The origin repository is private at the time of writing, so that link may not
+resolve for readers; the table below records what was copied and how it was changed
+so the provenance can be audited from this repository alone.
 
 | Origin | Destination | Treatment |
 |---|---|---|

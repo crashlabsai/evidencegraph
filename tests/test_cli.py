@@ -52,3 +52,70 @@ def test_ingest_cache_depends_on_case_configuration(wiki_case):
     path.write_text(json.dumps(config))
     assert set(ingest(wiki_case).values()) == {"ingested"}
     assert set(ingest(wiki_case).values()) == {"skipped"}
+
+
+def test_documented_recipe_runs_end_to_end(tmp_path):
+    """The command sequence in docs/getting-started.md, run exactly as documented."""
+    runner = CliRunner()
+    stage = tmp_path / "stage"
+    case, bundle = tmp_path / "mine", tmp_path / "mine-bundle"
+
+    def run(*args):
+        result = runner.invoke(app, [str(a) for a in args])
+        assert result.exit_code == 0, result.output + str(result.exception)
+        return result.output
+
+    run("lab", "stage", stage, "--seed", 3, "--spoof", "B:2", "--drop", "A")
+    run(
+        "case", "init", case, "--title", "My incident",
+        "--trust-domain", "registry=Artifact registry",
+        "--trust-domain", "runner=Inspect runner",
+        "--independent", "registry:runner",
+        "--clock-bound", "runner:container:1",
+    )  # fmt: skip
+    run(
+        "witness",
+        "add",
+        case,
+        stage / "public",
+        "--adapter",
+        "lab-public",
+        "--trust-domain",
+        "registry",
+    )
+    run(
+        "witness",
+        "add",
+        case,
+        stage / "public" / "transcripts",
+        "--adapter",
+        "inspect-eval",
+        "--trust-domain",
+        "runner",
+    )
+    run("ingest", case)
+    run("reconcile", case, "--substrate", "registry")
+    run("coverage", case)
+    run("docket", case)
+    docket = json.loads((case / "docket.json").read_text())
+    answers = {a["question_id"]: a for a in docket["answers"]}
+    assert answers["LQ1"]["outcome"] == "supported"
+    assert answers["LQ1"]["numbers"]["outcomes"] == {"supported": 9, "unmatched": 3}
+    rows = json.loads(
+        run(
+            "query",
+            case,
+            "SELECT outcome, method, count(*) n FROM relations WHERE kind='produced' GROUP BY 1,2 ORDER BY 1,2",
+        )  # fmt: skip
+    )
+    assert {(r["outcome"], r["method"]): r["n"] for r in rows} == {
+        ("supported", "independent_receipt_binding"): 9,
+        ("unmatched", "key_and_version"): 3,
+    }
+    ref = answers["LQ1"]["citation_ids"][0]
+    cited = json.loads(run("cite", case, ref))
+    assert cited["citation"]["citation_id"] == ref and cited["source_row"]
+    run("export", case, bundle)
+    verified = json.loads(run("verify", bundle, "--recompute"))
+    assert verified["verified"] and verified["recomputed"]
+    assert "Typical order" in run("--help")

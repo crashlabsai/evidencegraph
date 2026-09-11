@@ -62,9 +62,9 @@ remain unauthenticated. The 899 blank-label revisions are excluded from label-au
 denominators. Identity hypotheses over the 3,102 nonempty labels never establish
 the number of distinct agents. Reference snapshots from
 [Microsoft's Azure service tags](https://www.microsoft.com/en-us/download/details.aspx?id=56519)
-and [OpenAI's fetch ranges](https://openai.com/chatgpt-user.json) add 177 ambiguous
-masked-prefix overlaps. They are September snapshots, not historical ownership
-proof for May–July. No ARIN historical attribution was acquired.
+and [OpenAI's fetch ranges](https://openai.com/chatgpt-user.json) add 178 ambiguous
+masked-prefix overlaps. They are September 2026 snapshots, not historical ownership
+proof for May–July; the OpenAI list changes over time and the acquired hash is recorded. No ARIN historical attribution was acquired.
 
 The busiest publisher-assigned family is `relay-coordination`. RCS diff ancestry and
 content-hash reproduction are queryable with citations. Those links do not establish

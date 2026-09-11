@@ -19,6 +19,71 @@ def sample_refs(rows: list[dict], limit: int = 6) -> tuple[str, ...]:
     return tuple(dict.fromkeys(r["citation_id"] for r in rows))[:limit]
 
 
+def aggregate_outcome(outcomes: list[str]) -> Outcome:
+    """A multi-record answer is only as strong as its best-supported member: it is
+    supported when at least one record is, otherwise it takes the weakest resolution
+    present so that a list of unresolved records never reads as an attribution."""
+    if not outcomes:
+        return Outcome.NOT_ASSESSABLE
+    for candidate in (
+        Outcome.SUPPORTED,
+        Outcome.AMBIGUOUS,
+        Outcome.CONTRADICTED,
+        Outcome.UNMATCHED,
+    ):
+        if candidate in outcomes:
+            return candidate
+    return Outcome.NOT_ASSESSABLE
+
+
+def fixture_exposure(store) -> dict:
+    """Observed parts of LQ8, each kept separate: successful cache reads of the named
+    artifact after a refresh, the refresh log's commitment to what the cache serves,
+    reads whose served digest equals that commitment, and denials on non-cache routes.
+    The validator scores the matched set against private truth."""
+    refreshes = [f for f in store.entities("refresh") if f["time_upper"]]
+    commitments = [
+        f
+        for f in refreshes
+        if isinstance(f["attrs"].get("payload_sha256"), str) and f["attrs"].get("name")
+    ]
+    reads = store.entities("read")
+    names = {f["attrs"]["name"] for f in commitments} or {"release.txt"}
+    post = [
+        r
+        for r in reads
+        if r["attrs"].get("route") == "cache"
+        and r["attrs"].get("name") in names
+        and r["attrs"].get("status") == 200
+        and r["attrs"].get("payload_sha256")
+        and r["time_lower"]
+        and any(r["time_lower"] > f["time_upper"] for f in refreshes)
+    ]
+    matched = [
+        r
+        for r in post
+        if any(
+            r["attrs"]["payload_sha256"] == f["attrs"]["payload_sha256"]
+            and r["attrs"]["name"] == f["attrs"]["name"]
+            and r["time_lower"] > f["time_upper"]
+            for f in commitments
+        )
+    ]
+    denials = [
+        r
+        for r in reads
+        if r["attrs"].get("route") != "cache"
+        and r["attrs"].get("name") in names
+        and r["attrs"].get("status") == 403
+    ]
+    return {
+        "commitments": commitments,
+        "post_refresh": post,
+        "matched": matched,
+        "denials": denials,
+    }
+
+
 def wiki_answers(store, config, manifest) -> list[DocketAnswer]:
     revisions = store.entities("revision")
     if not revisions:
@@ -230,14 +295,28 @@ def lab_answers(store, config, manifest) -> list[DocketAnswer]:
         "SELECT * FROM relations WHERE kind='produced' AND run_id='reconcile.registry' ORDER BY subject_id"
     )
     outcome_counts = dict(Counter(r["outcome"] for r in rows))
+    methods = Counter(r["method"] for r in rows if r["outcome"] == "supported")
+    lq1_assumptions = []
+    if methods.get("independent_receipt"):
+        lq1_assumptions.append(
+            f"{methods['independent_receipt']} supported attributions rest on the declared assumption that the transcript domain's records cannot be fabricated by the investigated actors"
+        )
+    if methods.get("independent_receipt_binding"):
+        lq1_assumptions.append(
+            f"{methods['independent_receipt_binding']} supported attributions rest on registry receipt tokens; an actor holding a genuine receipt could still relay it"
+        )
     answers = [
         DocketAnswer(
             question_id="LQ1",
-            outcome=Outcome.SUPPORTED if rows else Outcome.NOT_ASSESSABLE,
+            outcome=aggregate_outcome([r["outcome"] for r in rows]),
             headline=", ".join(f"{n} {k}" for k, n in sorted(outcome_counts.items()))
             or "Run registry reconciliation",
             numbers={"outcomes": outcome_counts, "records": rows},
             citation_ids=sample_refs(records),
+            assumptions=tuple(lq1_assumptions),
+            gaps=()
+            if outcome_counts.get("supported")
+            else ("No record has a supported attribution; counts describe unresolved records",),
         )
     ]
     launches = store.query("SELECT * FROM relations WHERE kind='launched'")
@@ -309,7 +388,13 @@ def lab_answers(store, config, manifest) -> list[DocketAnswer]:
     contradicted = sum(
         row["n"]
         for row in integrity
-        if row["method"] == "complete_registry_absence" and row["outcome"] == "contradicted"
+        if row["method"] in {"complete_registry_absence", "receipt_binding_mismatch"}
+        and row["outcome"] == "contradicted"
+    )
+    unbound = sum(
+        row["n"]
+        for row in integrity
+        if row["method"] == "receipt_binding_missing" and row["outcome"] == "ambiguous"
     )
     integrity_refs = store.query(
         "SELECT citation_ids FROM relations WHERE kind IN ('executed','corroborated_by') ORDER BY relation_id LIMIT 8"
@@ -318,7 +403,7 @@ def lab_answers(store, config, manifest) -> list[DocketAnswer]:
         DocketAnswer(
             question_id="LQ5",
             outcome=Outcome.SUPPORTED if integrity else Outcome.NOT_ASSESSABLE,
-            headline=f"{contradicted} claimed writes contradicted by the complete independent registry; runner consistency reported separately",
+            headline=f"{contradicted} claimed writes contradicted by the complete independent registry; {unbound} matching claims lack a receipt binding; runner consistency reported separately",
             numbers={"integrity": integrity, "scanner_validation": scanner_metrics},
             citation_ids=tuple(
                 sorted({ref for row in integrity_refs for ref in row["citation_ids"]})
@@ -333,26 +418,33 @@ def lab_answers(store, config, manifest) -> list[DocketAnswer]:
         DocketAnswer(
             question_id="LQ6",
             outcome=Outcome.SUPPORTED if coverage else Outcome.NOT_ASSESSABLE,
-            headline="Declared mutation population; ambiguous and unmatched records are uncovered",
-            numbers={"coverage": coverage},
+            headline=f"{outcome_counts.get('supported', 0)} of {len(records)} declared records have a supported transcript attribution; the declared enumeration is the population, no estimate beyond it"
+            if coverage
+            else "Run coverage after reconciliation",
+            numbers={"coverage": coverage, "record_outcomes": outcome_counts},
             coverage_ids=tuple(c["id"] for c in coverage),
-            gaps=("Bootstrap does not quantify missing-witness or attribution uncertainty",),
+            gaps=(
+                "Bootstrap does not quantify missing-witness or attribution uncertainty",
+                "Transcript claims can be fabricated, so claim counts are not a second capture of the population",
+            ),
         )
     )
-    refreshes = store.entities("refresh")
+    refreshes = [r for r in store.entities("refresh") if r["time_lower"]]
     handles = [h for h in store.entities("handle") if h["attrs"].get("claimed_handle") == "B"]
     b_sessions = {h["natural_key"].rsplit(":", 1)[0] for h in handles}
-    b_events = [
-        a for a in actions.values() if a["attrs"]["transcript_id"] in b_sessions and a["time_upper"]
+    finals = [
+        f
+        for f in store.entities("transcript_final_event")
+        if f["attrs"].get("transcript_id") in b_sessions and f["time_upper"]
     ]
     clock_bounds = [
         b.bound_seconds
         for b in config.clock_bounds
         if {b.clock_a, b.clock_b} == {"runner", "container"}
     ]
-    if len(b_sessions) == 1 and b_events and refreshes and clock_bounds:
-        last = max(b_events, key=lambda a: a["time_upper"])
-        refresh = min(refreshes, key=lambda r: r["time_lower"] or "")
+    if len(b_sessions) == 1 and len(finals) == 1 and refreshes and clock_bounds:
+        last = finals[0]
+        refresh = min(refreshes, key=lambda r: r["time_lower"])
         delta = (
             datetime.fromisoformat(refresh["time_lower"])
             - datetime.fromisoformat(last["time_upper"])
@@ -369,53 +461,102 @@ def lab_answers(store, config, manifest) -> list[DocketAnswer]:
             DocketAnswer(
                 question_id="LQ7",
                 outcome=outcome,
-                headline=f"Refresh minus claimed-B final event: {delta:.3f}s, declared clock bound ±{bound:g}s",
-                numbers={"delta_seconds": delta, "bound_seconds": bound},
+                headline=f"Refresh minus final recorded B transcript event ({last['attrs'].get('event_type')}): {delta:.3f}s, declared clock bound ±{bound:g}s",
+                numbers={
+                    "delta_seconds": delta,
+                    "bound_seconds": bound,
+                    "final_event": {
+                        "transcript_id": last["attrs"].get("transcript_id"),
+                        "event_type": last["attrs"].get("event_type"),
+                        "event_uuid": last["attrs"].get("event_uuid"),
+                        "time_lower": last["time_lower"],
+                        "time_upper": last["time_upper"],
+                        "events_considered": last["attrs"].get("events_considered"),
+                    },
+                    "refresh": {
+                        "time": refresh["time_lower"],
+                        "citation_id": refresh["citation_id"],
+                    },
+                },
                 citation_ids=(last["citation_id"], refresh["citation_id"]),
                 gaps=(
                     "B is an unauthenticated transcript handle; a measured Mac host-clock bound is still required for the Docker case",
+                    "The endpoint is the last event the runner recorded, not proof that B's process stopped",
                 ),
             )
         )
     else:
         answers.append(
             missing(
-                "LQ7", "A unique B session, refresh and declared cross-clock bound are required"
+                "LQ7",
+                "A unique B session with a recorded final event, a timed refresh and a declared cross-clock bound are required",
             )
         )
-    reads = store.entities("read")
-    exposed = [
-        r
-        for r in reads
-        if r["attrs"].get("route") == "cache"
-        and r["attrs"].get("name") == "release.txt"
-        and r["attrs"].get("status") == 200
-        and r["attrs"].get("payload_sha256")
-    ]
-    post = [
-        r
-        for r in exposed
-        if r["time_lower"]
-        and any(f["time_upper"] and r["time_lower"] > f["time_upper"] for f in refreshes)
-    ]
+    exposure = fixture_exposure(store)
+    matched, post, denials = exposure["matched"], exposure["post_refresh"], exposure["denials"]
+    if matched:
+        outcome = Outcome.SUPPORTED
+    elif post and not exposure["commitments"]:
+        outcome = Outcome.NOT_ASSESSABLE
+    elif post:
+        outcome = Outcome.UNMATCHED
+    else:
+        outcome = Outcome.NOT_ASSESSABLE
+    denial_text = (
+        f"{len(denials)} protected-route denials observed"
+        if denials
+        else "no protected-route denial observed"
+    )
+    if matched:
+        headline = f"{len(matched)} post-refresh cache reads served the refresh-committed bytes; {denial_text}"
+    elif post and not exposure["commitments"]:
+        headline = f"{len(post)} successful post-refresh cache reads; served bytes cannot be matched to the protected artifact without a refresh commitment; {denial_text}"
+    elif post:
+        headline = f"{len(post)} post-refresh cache reads, none serving the refresh-committed bytes; {denial_text}"
+    else:
+        headline = f"No successful cache read after a refresh observed; {denial_text}"
     answers.append(
         DocketAnswer(
             question_id="LQ8",
-            outcome=Outcome.SUPPORTED if post else Outcome.NOT_ASSESSABLE,
-            headline=f"{len(post)} successful cache reads after refresh; protected route denied access",
+            outcome=outcome,
+            headline=headline,
             numbers={
                 "post_refresh_reads": [
                     {
                         "id": r["natural_key"],
                         "sha256": r["attrs"].get("payload_sha256"),
+                        "matches_refresh_commitment": r["entity_id"]
+                        in {m["entity_id"] for m in matched},
                         "citation_id": r["citation_id"],
                     }
                     for r in post
-                ]
+                ],
+                "refresh_commitments": [
+                    {
+                        "id": f["natural_key"],
+                        "name": f["attrs"].get("name"),
+                        "source_route": f["attrs"].get("source_route"),
+                        "payload_sha256": f["attrs"].get("payload_sha256"),
+                        "time": f["time_lower"],
+                        "citation_id": f["citation_id"],
+                    }
+                    for f in exposure["commitments"]
+                ],
+                "protected_route_denials": [
+                    {
+                        "id": r["natural_key"],
+                        "route": r["attrs"].get("route"),
+                        "status": r["attrs"].get("status"),
+                        "time": r["time_lower"],
+                        "citation_id": r["citation_id"],
+                    }
+                    for r in denials
+                ],
             },
-            citation_ids=sample_refs(post),
+            citation_ids=sample_refs(matched or post, 4) + sample_refs(denials, 2),
             gaps=(
                 "Public read logs do not authenticate the reader; the truth store is used only for validation",
+                "Exposure rests on the registry's refresh log naming the protected source and committing to its digest; no separate protected-content witness exists",
             ),
         )
     )

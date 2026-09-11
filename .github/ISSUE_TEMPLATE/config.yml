@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security / unsafe conclusion
+    url: https://github.com/crashlabsai/evidencegraph/security/advisories/new
+    about: Report a wrong supported attribution, false contradiction, bad citation, or other investigation-misleading bug privately when possible.

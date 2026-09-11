@@ -1,0 +1,23 @@
+# Changelog
+
+## Unreleased (correctness + public readiness)
+
+- Receipt-token binding (or explicit `authentic_records`) required for supported
+  write attribution; copied public receipts no longer promote alone
+- Temporal absence / execution-window checks use the full tool interval
+- Derived stages, dockets, and export refuse stale `case.json` assumptions
+- LQ7 uses the final recorded transcript event of any type; LQ8 splits observed parts
+- Per-pair tool/sandbox outcomes; capture-recapture lower bound removed for registry
+- Witness ids include adapter + filename so identical empty logs can coexist
+- Public README positioning, `SECURITY.md`, issue templates, handoff updates
+- Regression tests from the 2026-09-11 critical review probes
+- Onboarding docs for outside users: getting-started recipe with input contracts,
+  the sixteen questions explained, a glossary, and help text on every CLI command;
+  the documented recipe runs as a test
+
+## eg-prototype-v0.1 — 2026-09-11
+
+- First packaged prototype: DseWiki reconstruction path and scripted registry lab
+- `eg` CLI: case lifecycle, ingest, reconcile, coverage, docket, export, verify
+- Offline Scout mock control; live paid scanning disabled
+- MIT license; corpus bodies and private truth excluded from git

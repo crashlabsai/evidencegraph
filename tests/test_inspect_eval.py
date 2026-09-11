@@ -117,3 +117,63 @@ def test_tool_sandbox_consistency_stays_in_runner_domain(
             "SELECT outcome, trust_domain_relation FROM relations WHERE kind='corroborated_by'"
         )
         assert rows == [{"outcome": expected, "trust_domain_relation": "same"}]
+
+
+def test_unrelated_sandbox_execution_is_not_corroboration(tmp_path):
+    start = datetime(2026, 1, 1, tzinfo=UTC)
+    tool = ToolEvent(
+        id="call",
+        function="bash",
+        arguments={"cmd": "echo REAL"},
+        result="REAL",
+        timestamp=start,
+        completed=start + timedelta(seconds=1),
+    )
+    matching = SandboxEvent(
+        action="exec", cmd="echo REAL", result=0, output="REAL", timestamp=start
+    )
+    unrelated = SandboxEvent(
+        action="exec",
+        cmd="rm unrelated-file",
+        result=1,
+        output="permission denied",
+        timestamp=start + timedelta(seconds=1.5),
+    )
+    path = write_eval(
+        tmp_path / "agent.eval",
+        [
+            sample(
+                "B",
+                [ChatMessageUser(content="Handle: B")],
+                [tool, matching, unrelated],
+                start,
+                start + timedelta(seconds=2),
+            )
+        ],
+        start,
+    )
+    case = tmp_path / "case"
+    init_case(
+        case,
+        CaseConfig(title="Pairs", trust_domains=(TrustDomain(id="runner", label="Runner"),)),
+    )
+    add_witness(case, path, adapter="inspect-eval", trust_domain="runner")
+    ingest(case)
+    with Store(case, read_manifest(case)) as store:
+        by_uuid = {e["attrs"]["event_uuid"]: e["entity_id"] for e in store.entities("sandbox_exec")}
+        rows = {
+            r["object_id"]: r
+            for r in store.query("SELECT * FROM relations WHERE kind='corroborated_by'")
+        }
+        assert rows[by_uuid[matching.uuid]]["outcome"] == "supported"
+        assert rows[by_uuid[unrelated.uuid]]["outcome"] == "unmatched"
+        citations = {c["citation_id"]: c["locator"] for c in store.query("SELECT * FROM citations")}
+        for sandbox in (matching, unrelated):
+            cited = {citations[c] for c in rows[by_uuid[sandbox.uuid]]["citation_ids"]}
+            assert cited == {tool.uuid, sandbox.uuid}
+        final = store.entities("transcript_final_event")
+        assert len(final) == 1
+        assert final[0]["attrs"]["event_type"] == "sandbox"
+        assert final[0]["attrs"]["event_uuid"] == unrelated.uuid
+        assert final[0]["attrs"]["events_considered"] == 3
+        assert final[0]["time_upper"] == unrelated.timestamp.isoformat()

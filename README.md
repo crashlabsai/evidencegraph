@@ -1,58 +1,163 @@
 # Evidencegraph
 
-A working prototype for agent incident forensics. It preserves source bytes, builds
-a cited graph, distinguishes supported actions from ambiguous claims, and writes a
-compact evidence docket. Its first cases are the public collusion.wiki export and
-a scripted registry incident with private host truth.
+A research prototype for reconstructing what AI agents actually did during an
+incident, from their transcripts and from records an independent system kept. It
+preserves source bytes, builds a cited graph, distinguishes supported actions from
+ambiguous claims, and writes a one-page evidence docket another investigator can
+check line by line. MIT licensed. Not a finished product, and never a claim about
+intent or authenticated identity.
+
+## The problem
+
+When several agents act on shared infrastructure, a transcript is only the agent's
+own account of events. A tool result can be fabricated, a genuine receipt can be
+copied into another agent's log, clocks disagree, and a transcript can simply be
+missing. Grep and SQL over the logs will find matches, but they will not tell you
+which matches are evidence and which are coincidence, nor keep track of the
+assumptions each conclusion rests on.
+
+Evidencegraph reconciles transcript claims against independently captured records
+under declared trust and clock assumptions, and it abstains, visibly, whenever the
+evidence does not separate the explanations. Every line of its output cites
+immutable source bytes and lists the assumptions it depends on.
+
+## Who it is for
+
+People who already have native Inspect transcripts plus a separately collected
+artifact, registry or process log, need a small number of factual answers with
+citations, and must hand the reconstruction to someone else. If you only want to
+browse or scan transcripts, Inspect's viewer and Scout already do that well.
+
+## What you bring and what you get
+
+You bring `.eval` transcripts and an independent ledger of what happened (formats in
+[docs/getting-started.md](docs/getting-started.md)). You get:
+
+- `DOCKET.md`: a table of frozen questions, each with a status and a one-line finding.
+- `docket.json`: the numbers, per-record outcomes, citations, gaps and assumptions
+  behind every line.
+- `eg cite`: any citation resolves to the exact source row or native event, hash
+  re-verified.
+- A BagIt bundle whose docket can be recomputed from the bundled graph by whoever
+  receives it.
+
+## Try it in five minutes
 
 ```sh
 uv sync --locked
-uv run python scripts/demo.py cases/demo
+uv run python scripts/demo.py cases/demo --seed 7
 cat cases/demo/case/DOCKET.md
 uv run eg verify cases/demo/bundle --recompute
 ```
 
-The demo creates real Inspect `.eval` logs, drops one transcript, injects two false
-write receipts, runs graph attribution and an offline Scout control, checks the
-answers against private truth, and exports a portable BagIt directory. It uses no
-Docker, credentials, or paid model calls. Choose a new output directory for each run.
+The demo stages a synthetic incident with real Inspect logs and an independent
+registry, withholds one agent's transcript, appends two fabricated write receipts to
+another's, reconciles, scores the answers against private truth the graph never
+reads, and exports a bundle. No Docker, credentials or paid model calls. Use a new
+output directory each run.
 
-Reconstruct the public wiki corpus:
+## Use it on your own logs
 
 ```sh
-uv run python scripts/reconstruct_dsewiki.py cases/wiki
-uv run eg query cases/wiki "SELECT wiki,count(*) AS revisions FROM revisions GROUP BY 1"
-uv run eg query cases/wiki "SELECT fact_name,status,reason FROM facts WHERE status!='exact'"
+uv run eg case init cases/mine --title "My incident" \
+  --trust-domain registry="Artifact registry" --trust-domain runner="Inspect runner" \
+  --independent registry:runner --clock-bound runner:container:1
+uv run eg witness add cases/mine path/to/registry --adapter lab-public --trust-domain registry
+uv run eg witness add cases/mine path/to/transcripts --adapter inspect-eval --trust-domain runner
+uv run eg ingest cases/mine
+uv run eg reconcile cases/mine --substrate registry
+uv run eg coverage cases/mine
+uv run eg docket cases/mine
+uv run eg export cases/mine cases/mine-bundle
 ```
 
-Raw datasets and generated cases are gitignored. The ZIP is pinned by SHA-256;
-separate off-wiki downloads become individually hashed witnesses. No corpus licence
-has been identified, so source bodies are not committed here.
+[docs/getting-started.md](docs/getting-started.md) explains each declaration, the
+exact input contracts for both adapters, how to read the docket, and which missing
+observation would resolve an unresolved line. `uv run eg --help` describes every
+command.
 
-Use `uv run eg --help` for individual commands. `case init`, `witness add`, `ingest`,
-`reconcile`, `identity`, `lineage`, `coverage`, `facts`, `docket`, `query`, `cite`,
-`validate`, `export`, `verify`, `scout-db`, and the offline `scan` path are available.
-The [architecture and limitations](docs/evidencegraph.md) describe what each status means.
-The [DseWiki findings](docs/cases/dsewiki.md) and [lab validation](docs/cases/lab-validation.md)
-record the real-data and ground-truth checks.
-The [handoff](docs/handoff.md) records repository recovery and remaining acceptance work.
+## Reading a docket
 
-Every schema field and graph relation maps to one of 16 frozen forensic questions.
-Private truth is read only by validation/key generation. The graph reader never
-opens it. Citations locate immutable JSONL lines, CSV records, JSON values, or native
-Inspect events/messages. Matching handles and IP prefixes do not authenticate actors.
+| Status | Meaning |
+|---|---|
+| `supported` | The declared rule selected exactly one explanation under the case's assumptions |
+| `ambiguous` | Competing or unbound explanations remain |
+| `contradicted` | Specific conflicting evidence exists |
+| `unmatched` | Nothing in the acquired evidence corresponds |
+| `not_assessable` | A required field, clock, population or witness is missing; `gaps` says which |
 
-This release does not establish intent, hidden activity, or the true number of
-actors. Published wiki save events are derived from stored revisions and cannot
-provide independent capture-recapture. Live paid scanning is disabled until a real
-spend guard exists. Background-process questions require the separate Mac Docker
-collection and additional public host observations; absent evidence stays explicit.
+`supported` never means intent, actor authentication, or a bound on hidden activity.
+Each supported line lists the case declarations it rests on; treat them as part of
+the finding. The questions themselves are explained in
+[docs/questions.md](docs/questions.md), and the terms in
+[docs/glossary.md](docs/glossary.md).
+
+## Cases in the repository
+
+- **A staged registry incident** with private host truth. Ten seeds of one scripted
+  scenario are checked against that truth: all nine supported attributions correct,
+  both fabricated receipts contradicted, no false accusations, and a copied genuine
+  receipt left unattributed rather than misattributed. These are software checks on
+  one fixture, not estimates of real-world forensic accuracy. See
+  [docs/cases/lab-validation.md](docs/cases/lab-validation.md).
+- **The public collusion.wiki DseWiki export**: 14,591 revisions reconstructed and
+  audited against the publisher's own manifest. This audits what was published; it
+  does not adjudicate the incident. Bodies are not in git because no corpus licence
+  has been identified. See [docs/cases/dsewiki.md](docs/cases/dsewiki.md).
+
+## Known limits
+
+- **A matching receipt is not enough for write attribution.** Every receipt field is
+  public once the ledger is. Support requires either the registry's receipt-token
+  commitment binding the transcript's token, or an explicit `--authentic-records`
+  declaration that the transcript domain could not be fabricated, which the docket
+  names. Relaying a genuine receipt is not defended against.
+- **Absence is evidence only inside complete capture.** A claimed write is
+  contradicted only when a complete independent population's window contains the
+  whole tool call widened by the clock bound; otherwise the tool abstains.
+- **Conclusions are bound to `case.json`.** Changing a trust or clock declaration
+  blocks rendering and export until the stages are re-run.
+- **Handles and network prefixes never authenticate anyone.** Identity lines stay
+  ambiguous by design.
+- **Background launch and process questions** need a host-side collection with public
+  launch and process observations that no shipped case has yet; they stay
+  `not_assessable`.
+- **Live paid scanning is disabled.** The Scout path is an offline control that
+  repeats claims and must fail on fabricated ones; it evaluates no real model.
+- **Wiki save events derive from stored revisions**, so they cannot support
+  independent capture-recapture. No population estimate is made from transcript
+  claims either.
+
+A full independent review of the prototype, the defects it reproduced, and how each
+was fixed is in [docs/critical-review.md](docs/critical-review.md). The rule contract
+is [docs/evidencegraph.md](docs/evidencegraph.md).
+
+## Documentation map
+
+| Document | Contents |
+|---|---|
+| [docs/getting-started.md](docs/getting-started.md) | Bring your own evidence: recipe, input contracts, reading the docket |
+| [docs/questions.md](docs/questions.md) | The sixteen frozen questions and the evidence each needs |
+| [docs/glossary.md](docs/glossary.md) | Witness, trust domain, receipt token, docket and the rest |
+| [docs/evidencegraph.md](docs/evidencegraph.md) | Status vocabulary and forensic rules |
+| [docs/cases/lab-validation.md](docs/cases/lab-validation.md) | Staged incident and its ground-truth scores |
+| [docs/cases/dsewiki.md](docs/cases/dsewiki.md) | Public export reconstruction findings |
+| [docs/critical-review.md](docs/critical-review.md) | Independent review and the resolution of each finding |
+| [docs/handoff.md](docs/handoff.md) | Release history and remaining acceptance work |
+| [SECURITY.md](SECURITY.md) | How to report a misleading conclusion |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | What contributions help most |
+
+## Development
 
 ```sh
+uv sync --locked
 uv run ruff check
 uv run ruff format --check
 uv run basedpyright
 uv run pytest -q
 ```
 
-Code is MIT licensed. See [VENDORED.md](VENDORED.md) for the Crossledger source port.
+Feedback from investigators and evaluation researchers is the most useful input:
+open an issue with the *Investigator / reviewer feedback* template and say whether a
+docket would beat your current log and SQL workflow on a real case. See
+[VENDORED.md](VENDORED.md) for the Crossledger source port.
