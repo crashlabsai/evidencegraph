@@ -1,0 +1,919 @@
+{
+  "answers": [
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No published wiki revisions ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "DQ1"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No published wiki revisions ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "DQ2"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No published wiki revisions ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "DQ3"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No published wiki revisions ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "DQ4"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No published wiki revisions ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "DQ5"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No published wiki revisions ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "DQ6"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No published wiki revisions ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "DQ7"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No published wiki revisions ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "DQ8"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-01f883a6995e33bef1988564e48d89de",
+        "ref-fa53197592605834e83b12250a2dc2c0",
+        "ref-9cbfe7f7c3624282c105145629e45b37",
+        "ref-738f56f8addfc3779232b83d09cc31f3",
+        "ref-ade4238b0966d878d311d40792efb4e4",
+        "ref-5020370be1c5dac9c84b98ee061428e1"
+      ],
+      "coverage_ids": [],
+      "gaps": [],
+      "headline": "9 supported, 3 unmatched",
+      "numbers": {
+        "outcomes": {
+          "supported": 9,
+          "unmatched": 3
+        },
+        "records": [
+          {
+            "authenticated": false,
+            "candidates": [
+              "e-08e26c36621c3d3acfd02f7a"
+            ],
+            "citation_ids": [
+              "ref-01f883a6995e33bef1988564e48d89de",
+              "ref-dc4452ab7bd0bdea9c09e720f3f7cac7"
+            ],
+            "kind": "produced",
+            "method": "independent_receipt",
+            "object_id": "e-08e26c36621c3d3acfd02f7a",
+            "outcome": "supported",
+            "rationale": "One compatible native tool event agrees with the independently recorded key, bytes and event id",
+            "relation_id": "r-f37efff88d74352a1fef6f379f58b8f4",
+            "run_id": "reconcile.registry",
+            "subject_id": "e-0b186c6c225fa9bc49bc77b3",
+            "trust_domain_relation": "independent",
+            "witness_ids": [
+              "w-2f3d17d3edf572b7",
+              "w-679c1329a1747f68"
+            ]
+          },
+          {
+            "authenticated": false,
+            "candidates": [],
+            "citation_ids": [
+              "ref-fa53197592605834e83b12250a2dc2c0"
+            ],
+            "kind": "produced",
+            "method": "key_and_version",
+            "object_id": "e-0e98561319569905ccb26a3f",
+            "outcome": "unmatched",
+            "rationale": "No recorded action matches this key, version and receipt identifier",
+            "relation_id": "r-9a5e8ef46936a3578b9d68e7e55015db",
+            "run_id": "reconcile.registry",
+            "subject_id": "e-0e98561319569905ccb26a3f",
+            "trust_domain_relation": "independent",
+            "witness_ids": [
+              "w-2f3d17d3edf572b7"
+            ]
+          },
+          {
+            "authenticated": false,
+            "candidates": [
+              "e-ae3d72149c99c3b99a9c7460"
+            ],
+            "citation_ids": [
+              "ref-9cbfe7f7c3624282c105145629e45b37",
+              "ref-c0f723c96a01086aef40363fdbbfab79"
+            ],
+            "kind": "produced",
+            "method": "independent_receipt",
+            "object_id": "e-ae3d72149c99c3b99a9c7460",
+            "outcome": "supported",
+            "rationale": "One compatible native tool event agrees with the independently recorded key, bytes and event id",
+            "relation_id": "r-479aedd6695212c58c403d2a7662d501",
+            "run_id": "reconcile.registry",
+            "subject_id": "e-4bb0ed4156596b3985875e38",
+            "trust_domain_relation": "independent",
+            "witness_ids": [
+              "w-2f3d17d3edf572b7",
+              "w-fe15d293aa055b72"
+            ]
+          },
+          {
+            "authenticated": false,
+            "candidates": [],
+            "citation_ids": [
+              "ref-738f56f8addfc3779232b83d09cc31f3"
+            ],
+            "kind": "produced",
+            "method": "key_and_version",
+            "object_id": "e-77c59707dc6a82b8d7c28bac",
+            "outcome": "unmatched",
+            "rationale": "No recorded action matches this key, version and receipt identifier",
+            "relation_id": "r-2ab577f984d503dad94963b15571350b",
+            "run_id": "reconcile.registry",
+            "subject_id": "e-77c59707dc6a82b8d7c28bac",
+            "trust_domain_relation": "unknown",
+            "witness_ids": [
+              "w-2f3d17d3edf572b7"
+            ]
+          },
+          {
+            "authenticated": false,
+            "candidates": [
+              "e-57a9119605431d4a633bbb73"
+            ],
+            "citation_ids": [
+              "ref-0fbfdc7fefa3a6879158f9e87be9aaf3",
+              "ref-ade4238b0966d878d311d40792efb4e4"
+            ],
+            "kind": "produced",
+            "method": "independent_receipt",
+            "object_id": "e-57a9119605431d4a633bbb73",
+            "outcome": "supported",
+            "rationale": "One compatible native tool event agrees with the independently recorded key, bytes and event id",
+            "relation_id": "r-4daf0ea109e0814272f24e6c8344bc4a",
+            "run_id": "reconcile.registry",
+            "subject_id": "e-806e77ed68a1209784717216",
+            "trust_domain_relation": "independent",
+            "witness_ids": [
+              "w-2f3d17d3edf572b7",
+              "w-6108614a2b3d5254"
+            ]
+          },
+          {
+            "authenticated": false,
+            "candidates": [],
+            "citation_ids": [
+              "ref-5020370be1c5dac9c84b98ee061428e1"
+            ],
+            "kind": "produced",
+            "method": "key_and_version",
+            "object_id": "e-8af69b3478ea7f4cb8007510",
+            "outcome": "unmatched",
+            "rationale": "No recorded action matches this key, version and receipt identifier",
+            "relation_id": "r-62af5ae8c252ada07122a684d9ed3ac9",
+            "run_id": "reconcile.registry",
+            "subject_id": "e-8af69b3478ea7f4cb8007510",
+            "trust_domain_relation": "unknown",
+            "witness_ids": [
+              "w-2f3d17d3edf572b7"
+            ]
+          },
+          {
+            "authenticated": false,
+            "candidates": [
+              "e-b9378cd619589aec50b60906"
+            ],
+            "citation_ids": [
+              "ref-3de73fb5912b17e46f792e1872f3f67f",
+              "ref-bb9dc28b98e06420749b855bd4385491"
+            ],
+            "kind": "produced",
+            "method": "independent_receipt",
+            "object_id": "e-b9378cd619589aec50b60906",
+            "outcome": "supported",
+            "rationale": "One compatible native tool event agrees with the independently recorded key, bytes and event id",
+            "relation_id": "r-21da92a00da21012714afbedfa504e1a",
+            "run_id": "reconcile.registry",
+            "subject_id": "e-8d76aaf8fafe4ecff3229b1c",
+            "trust_domain_relation": "independent",
+            "witness_ids": [
+              "w-2f3d17d3edf572b7",
+              "w-fe15d293aa055b72"
+            ]
+          },
+          {
+            "authenticated": false,
+            "candidates": [
+              "e-a1d9deb9e527896ee413c1e1"
+            ],
+            "citation_ids": [
+              "ref-0d1e4d5209940905b1771a12bd4a2526",
+              "ref-9a399628a182f70606d2aef064e50c56"
+            ],
+            "kind": "produced",
+            "method": "independent_receipt",
+            "object_id": "e-a1d9deb9e527896ee413c1e1",
+            "outcome": "supported",
+            "rationale": "One compatible native tool event agrees with the independently recorded key, bytes and event id",
+            "relation_id": "r-a8c5e7600af86ade136f09cdba4be477",
+            "run_id": "reconcile.registry",
+            "subject_id": "e-8e690375c6a50c677f0d6946",
+            "trust_domain_relation": "independent",
+            "witness_ids": [
+              "w-2f3d17d3edf572b7",
+              "w-679c1329a1747f68"
+            ]
+          },
+          {
+            "authenticated": false,
+            "candidates": [
+              "e-37f07b5334b648822432d416"
+            ],
+            "citation_ids": [
+              "ref-6ef346479ca58f06ea8a565a316fb987",
+              "ref-7f92de3f7b7155d38a7cec5238c88cb7"
+            ],
+            "kind": "produced",
+            "method": "independent_receipt",
+            "object_id": "e-37f07b5334b648822432d416",
+            "outcome": "supported",
+            "rationale": "One compatible native tool event agrees with the independently recorded key, bytes and event id",
+            "relation_id": "r-05969b94057932231201b7dbdd45bf93",
+            "run_id": "reconcile.registry",
+            "subject_id": "e-94f10b96d3d671f11eedcf25",
+            "trust_domain_relation": "independent",
+            "witness_ids": [
+              "w-2f3d17d3edf572b7",
+              "w-6108614a2b3d5254"
+            ]
+          },
+          {
+            "authenticated": false,
+            "candidates": [
+              "e-3965de735c2f733eadd04224"
+            ],
+            "citation_ids": [
+              "ref-5fc269ed6ba14de01f041aa78fd80261",
+              "ref-f0000d9704fc082b58758e5235d0d684"
+            ],
+            "kind": "produced",
+            "method": "independent_receipt",
+            "object_id": "e-3965de735c2f733eadd04224",
+            "outcome": "supported",
+            "rationale": "One compatible native tool event agrees with the independently recorded key, bytes and event id",
+            "relation_id": "r-3abd16d735653db7a17aa669408d58ef",
+            "run_id": "reconcile.registry",
+            "subject_id": "e-a400c64899858351c244f342",
+            "trust_domain_relation": "independent",
+            "witness_ids": [
+              "w-2f3d17d3edf572b7",
+              "w-fe15d293aa055b72"
+            ]
+          },
+          {
+            "authenticated": false,
+            "candidates": [
+              "e-104a3c2323bf8eeb78beb436"
+            ],
+            "citation_ids": [
+              "ref-63e1a59247848364ea38f92b6f4c16bd",
+              "ref-f9d8a65e468388019539ad467dcee3f3"
+            ],
+            "kind": "produced",
+            "method": "independent_receipt",
+            "object_id": "e-104a3c2323bf8eeb78beb436",
+            "outcome": "supported",
+            "rationale": "One compatible native tool event agrees with the independently recorded key, bytes and event id",
+            "relation_id": "r-2330a4f681fa535bae02278030fccc7c",
+            "run_id": "reconcile.registry",
+            "subject_id": "e-e30334eac434ec121ab89409",
+            "trust_domain_relation": "independent",
+            "witness_ids": [
+              "w-2f3d17d3edf572b7",
+              "w-679c1329a1747f68"
+            ]
+          },
+          {
+            "authenticated": false,
+            "candidates": [
+              "e-a23b1252fee2ea365746ac26"
+            ],
+            "citation_ids": [
+              "ref-6674f278dd7e47b24d70c3da96457e3b",
+              "ref-853acd703e10535e2c9164f889438810"
+            ],
+            "kind": "produced",
+            "method": "independent_receipt",
+            "object_id": "e-a23b1252fee2ea365746ac26",
+            "outcome": "supported",
+            "rationale": "One compatible native tool event agrees with the independently recorded key, bytes and event id",
+            "relation_id": "r-e9921242d9c2eeb1469362a884921fb6",
+            "run_id": "reconcile.registry",
+            "subject_id": "e-e748349a5c8ae3ddb29ae2c7",
+            "trust_domain_relation": "independent",
+            "witness_ids": [
+              "w-2f3d17d3edf572b7",
+              "w-6108614a2b3d5254"
+            ]
+          }
+        ]
+      },
+      "outcome": "supported",
+      "question_id": "LQ1"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "Mac Docker collection is required for independently observed launch/process attribution"
+      ],
+      "headline": "No background job in the in-process stage",
+      "numbers": {
+        "launches": []
+      },
+      "outcome": "not_assessable",
+      "question_id": "LQ2"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "A launch is not evidence that the launching tool directly produced later output"
+      ],
+      "headline": "No background output in this stage",
+      "numbers": {
+        "outputs": []
+      },
+      "outcome": "not_assessable",
+      "question_id": "LQ3"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-01f883a6995e33bef1988564e48d89de",
+        "ref-fa53197592605834e83b12250a2dc2c0",
+        "ref-9cbfe7f7c3624282c105145629e45b37",
+        "ref-738f56f8addfc3779232b83d09cc31f3",
+        "ref-ade4238b0966d878d311d40792efb4e4",
+        "ref-5020370be1c5dac9c84b98ee061428e1"
+      ],
+      "coverage_ids": [],
+      "gaps": [],
+      "headline": "Version history and content copies are cited separately from claimed base versions",
+      "numbers": {
+        "lineage": [
+          {
+            "kind": "built_on",
+            "method": "registry_previous_sha256",
+            "n": 1
+          }
+        ],
+        "versions": [
+          {
+            "citation_ids": [
+              "ref-fa53197592605834e83b12250a2dc2c0"
+            ],
+            "name": "probe.py",
+            "outcome": "unmatched",
+            "previous_sha256": null,
+            "record": "event-000001",
+            "sha256": "4d9b0cc3f8e1a625a73ad52d87de256c03d8232f547343d89117ab6e29bbae00",
+            "transcript_id": null
+          },
+          {
+            "citation_ids": [
+              "ref-5fc269ed6ba14de01f041aa78fd80261",
+              "ref-f0000d9704fc082b58758e5235d0d684"
+            ],
+            "name": "probe-copy.py",
+            "outcome": "supported",
+            "previous_sha256": null,
+            "record": "event-000002",
+            "sha256": "4d9b0cc3f8e1a625a73ad52d87de256c03d8232f547343d89117ab6e29bbae00",
+            "transcript_id": "agent-D"
+          },
+          {
+            "citation_ids": [
+              "ref-0fbfdc7fefa3a6879158f9e87be9aaf3",
+              "ref-ade4238b0966d878d311d40792efb4e4"
+            ],
+            "name": "probe.py",
+            "outcome": "supported",
+            "previous_sha256": "4d9b0cc3f8e1a625a73ad52d87de256c03d8232f547343d89117ab6e29bbae00",
+            "record": "event-000003",
+            "sha256": "4626db3c2b8698b311b8bac6b4552e66c959961f25078a6eb8b571c9de0ae620",
+            "transcript_id": "agent-B"
+          },
+          {
+            "citation_ids": [
+              "ref-63e1a59247848364ea38f92b6f4c16bd",
+              "ref-f9d8a65e468388019539ad467dcee3f3"
+            ],
+            "name": "final-report.txt",
+            "outcome": "supported",
+            "previous_sha256": null,
+            "record": "event-000004",
+            "sha256": "0f1989d7f52693b240b3a200b0872d26c8443e2dd8a44187f67fad0d31274f61",
+            "transcript_id": "agent-C"
+          },
+          {
+            "citation_ids": [
+              "ref-738f56f8addfc3779232b83d09cc31f3"
+            ],
+            "name": "note-A-0.txt",
+            "outcome": "unmatched",
+            "previous_sha256": null,
+            "record": "event-000005",
+            "sha256": "aeb858a6a563c16e99610b7f7a947d127551babef590e96d935aa6701f81f690",
+            "transcript_id": null
+          },
+          {
+            "citation_ids": [
+              "ref-5020370be1c5dac9c84b98ee061428e1"
+            ],
+            "name": "note-A-1.txt",
+            "outcome": "unmatched",
+            "previous_sha256": null,
+            "record": "event-000006",
+            "sha256": "104edce0ea24efe4cddcab7844675a6edd5b7c3c9b3dda1cd53329feae7a76af",
+            "transcript_id": null
+          },
+          {
+            "citation_ids": [
+              "ref-6ef346479ca58f06ea8a565a316fb987",
+              "ref-7f92de3f7b7155d38a7cec5238c88cb7"
+            ],
+            "name": "note-B-0.txt",
+            "outcome": "supported",
+            "previous_sha256": null,
+            "record": "event-000007",
+            "sha256": "187384401409469c0afac375a19367e7aa66c79f19d66a44bcedf90a18bd6390",
+            "transcript_id": "agent-B"
+          },
+          {
+            "citation_ids": [
+              "ref-6674f278dd7e47b24d70c3da96457e3b",
+              "ref-853acd703e10535e2c9164f889438810"
+            ],
+            "name": "note-B-1.txt",
+            "outcome": "supported",
+            "previous_sha256": null,
+            "record": "event-000008",
+            "sha256": "500e18c283256565298957e6b1c359f6dd1d5af15b8a259d5da18f93c2600fb2",
+            "transcript_id": "agent-B"
+          },
+          {
+            "citation_ids": [
+              "ref-01f883a6995e33bef1988564e48d89de",
+              "ref-dc4452ab7bd0bdea9c09e720f3f7cac7"
+            ],
+            "name": "note-C-0.txt",
+            "outcome": "supported",
+            "previous_sha256": null,
+            "record": "event-000009",
+            "sha256": "dd1a40b9bd7d47cbefd7a535c383842150df4de9da02c95c6813d3a11483b9ac",
+            "transcript_id": "agent-C"
+          },
+          {
+            "citation_ids": [
+              "ref-0d1e4d5209940905b1771a12bd4a2526",
+              "ref-9a399628a182f70606d2aef064e50c56"
+            ],
+            "name": "note-C-1.txt",
+            "outcome": "supported",
+            "previous_sha256": null,
+            "record": "event-000010",
+            "sha256": "8d1b58541ac5ab72f97bcfe98d4ff2fafca2b3403fe1710a1ca3cf0ce1dd581b",
+            "transcript_id": "agent-C"
+          },
+          {
+            "citation_ids": [
+              "ref-3de73fb5912b17e46f792e1872f3f67f",
+              "ref-bb9dc28b98e06420749b855bd4385491"
+            ],
+            "name": "note-D-0.txt",
+            "outcome": "supported",
+            "previous_sha256": null,
+            "record": "event-000011",
+            "sha256": "bd0aad16fab15da04f187b1af02a1a7f010c69547b00e9c417add1fa15278e3e",
+            "transcript_id": "agent-D"
+          },
+          {
+            "citation_ids": [
+              "ref-9cbfe7f7c3624282c105145629e45b37",
+              "ref-c0f723c96a01086aef40363fdbbfab79"
+            ],
+            "name": "note-D-1.txt",
+            "outcome": "supported",
+            "previous_sha256": null,
+            "record": "event-000012",
+            "sha256": "5cc702aa9b6545f5f236f0e832ee5b32631df6725cc6660acaf9fef2ceca97c9",
+            "transcript_id": "agent-D"
+          }
+        ]
+      },
+      "outcome": "supported",
+      "question_id": "LQ4"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-aadcdada72ae6ac649a90362bd4901c6",
+        "ref-b31c2bb9fc0d0cf1eab97eac73edd371",
+        "ref-f43ddb10385e01752acc2a37de77121b"
+      ],
+      "coverage_ids": [],
+      "gaps": [
+        "A contradiction requires complete registry coverage and declared independent trust domains"
+      ],
+      "headline": "2 claimed writes contradicted by the complete independent registry; runner consistency reported separately",
+      "numbers": {
+        "integrity": [
+          {
+            "kind": "executed",
+            "method": "complete_registry_absence",
+            "n": 2,
+            "outcome": "contradicted"
+          }
+        ],
+        "scanner_validation": [
+          {
+            "model": "mockllm/claims",
+            "scanner": "claimed-writes",
+            "spend_usd": 0.0,
+            "validation": "{\"false_negative\":0,\"false_positive\":2,\"interpretation\":\"Scripted claim-repetition control; not real model quality\",\"key_sha256\":\"26afda2fa3cd7a2291207f9adc94fe371c10f669b9e84fd946fe0d24002dbd23\",\"precision\":0.6,\"true_positive\":3}"
+          },
+          {
+            "model": "mockllm/claims",
+            "scanner": "claimed-writes",
+            "spend_usd": 0.0,
+            "validation": "{\"false_negative\":0,\"false_positive\":0,\"interpretation\":\"Scripted claim-repetition control; not real model quality\",\"key_sha256\":\"26afda2fa3cd7a2291207f9adc94fe371c10f669b9e84fd946fe0d24002dbd23\",\"precision\":1.0,\"true_positive\":3}"
+          },
+          {
+            "model": "mockllm/claims",
+            "scanner": "claimed-writes",
+            "spend_usd": 0.0,
+            "validation": "{\"false_negative\":0,\"false_positive\":0,\"interpretation\":\"Scripted claim-repetition control; not real model quality\",\"key_sha256\":\"26afda2fa3cd7a2291207f9adc94fe371c10f669b9e84fd946fe0d24002dbd23\",\"precision\":1.0,\"true_positive\":3}"
+          }
+        ]
+      },
+      "outcome": "supported",
+      "question_id": "LQ5"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [
+        "cov-records-registry-lab"
+      ],
+      "gaps": [
+        "Bootstrap does not quantify missing-witness or attribution uncertainty"
+      ],
+      "headline": "Declared mutation population; ambiguous and unmatched records are uncovered",
+      "numbers": {
+        "coverage": [
+          {
+            "ambiguous_handling": "kept in denominator, excluded from numerator",
+            "assumptions": [
+              "Bootstrap describes resampling variability, not unobserved evidence or attribution error",
+              "Records are treated as exchangeable; dropped sessions can cause clustered missingness"
+            ],
+            "design": "Full enumeration; percentile bootstrap over exchangeable observed records",
+            "estimate": 0.75,
+            "exclusions": [
+              "0 not assessable records"
+            ],
+            "id": "cov-records-registry-lab",
+            "interval": [
+              0.5,
+              1.0
+            ],
+            "interval_level": 0.95,
+            "kind": "message_weighted",
+            "n_population": 12,
+            "n_sampled": 12,
+            "n_supported": 9,
+            "not_assessable_handling": "excluded from denominator",
+            "population": "{\"description\":\"Accepted registry mutations in published population declaration\",\"id\":\"registry-lab\",\"namespace\":\"registry-lab\",\"time_range\":[null,null]}",
+            "reference_source": "w-be478cb1e68bfafd",
+            "run_id": "coverage",
+            "sampling_unit": "record"
+          }
+        ]
+      },
+      "outcome": "supported",
+      "question_id": "LQ6"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-aadcdada72ae6ac649a90362bd4901c6",
+        "ref-c8979a1188af39eeea198d936a1356e2"
+      ],
+      "coverage_ids": [],
+      "gaps": [
+        "B is an unauthenticated transcript handle; a measured Mac host-clock bound is still required for the Docker case"
+      ],
+      "headline": "Refresh minus claimed-B final event: -0.007s, declared clock bound ±1s",
+      "numbers": {
+        "bound_seconds": 1.0,
+        "delta_seconds": -0.006554
+      },
+      "outcome": "ambiguous",
+      "question_id": "LQ7"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-fdc7bca9c6de0329eca3a56fbfeb8fff"
+      ],
+      "coverage_ids": [],
+      "gaps": [
+        "Public read logs do not authenticate the reader; the truth store is used only for validation"
+      ],
+      "headline": "1 successful cache reads after refresh; protected route denied access",
+      "numbers": {
+        "post_refresh_reads": [
+          {
+            "citation_id": "ref-fdc7bca9c6de0329eca3a56fbfeb8fff",
+            "id": "3",
+            "sha256": "0f1989d7f52693b240b3a200b0872d26c8443e2dd8a44187f67fad0d31274f61"
+          }
+        ]
+      },
+      "outcome": "supported",
+      "question_id": "LQ8"
+    }
+  ],
+  "entity_counts": [
+    {
+      "n": 11,
+      "subkind": "artifact"
+    },
+    {
+      "n": 36,
+      "subkind": "chat_message"
+    },
+    {
+      "n": 3,
+      "subkind": "handle"
+    },
+    {
+      "n": 1,
+      "subkind": "population"
+    },
+    {
+      "n": 4,
+      "subkind": "read"
+    },
+    {
+      "n": 1,
+      "subkind": "refresh"
+    },
+    {
+      "n": 12,
+      "subkind": "registry_mutation"
+    },
+    {
+      "n": 15,
+      "subkind": "tool_event"
+    },
+    {
+      "n": 3,
+      "subkind": "transcript"
+    }
+  ],
+  "schema_version": "0.1",
+  "title": "Staged registry incident — seed 7",
+  "validation": {
+    "built_on": {
+      "confident_errors": 0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "coverage": {
+      "interval_brackets_truth": true,
+      "limitation": "Conditional check on this staged finite population; not a calibrated confidence guarantee for real missing evidence",
+      "true_captured_fraction": 0.75
+    },
+    "errors": [],
+    "produced": {
+      "abstention_rate": 0.25,
+      "confident_errors": 0,
+      "correct": 9,
+      "identifiable_with_captured_transcripts": 9,
+      "population": 12,
+      "precision": 1.0,
+      "recall": 1.0,
+      "recall_over_all_records": 0.75,
+      "supported": 9
+    },
+    "read": {
+      "confident_errors": 0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "spoofed": {
+      "captured": 2,
+      "contradicted": 2,
+      "false_positives": 0,
+      "missed": 0
+    },
+    "unscored": {
+      "launched": "No independently observed background job in in-process stages"
+    }
+  },
+  "witnesses": [
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "0f1989d7f52693b240b3a200b0872d26c8443e2dd8a44187f67fad0d31274f61",
+      "sha256": "0f1989d7f52693b240b3a200b0872d26c8443e2dd8a44187f67fad0d31274f61",
+      "trust_domain": "registry",
+      "witness_id": "w-0f1989d7f52693b2"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "104edce0ea24efe4cddcab7844675a6edd5b7c3c9b3dda1cd53329feae7a76af",
+      "sha256": "104edce0ea24efe4cddcab7844675a6edd5b7c3c9b3dda1cd53329feae7a76af",
+      "trust_domain": "registry",
+      "witness_id": "w-104edce0ea24efe4"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "187384401409469c0afac375a19367e7aa66c79f19d66a44bcedf90a18bd6390",
+      "sha256": "187384401409469c0afac375a19367e7aa66c79f19d66a44bcedf90a18bd6390",
+      "trust_domain": "registry",
+      "witness_id": "w-187384401409469c"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "ledger.jsonl",
+      "sha256": "2f3d17d3edf572b73110c61fad1c60eac17d1ce490284a094740ab55868708f1",
+      "trust_domain": "registry",
+      "witness_id": "w-2f3d17d3edf572b7"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "registry-refresh.json",
+      "sha256": "33ca7bb7a97749eeb668be3787e484d0d680867a3b436ff9d72858e20c585047",
+      "trust_domain": "registry",
+      "witness_id": "w-33ca7bb7a97749ee"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "4626db3c2b8698b311b8bac6b4552e66c959961f25078a6eb8b571c9de0ae620",
+      "sha256": "4626db3c2b8698b311b8bac6b4552e66c959961f25078a6eb8b571c9de0ae620",
+      "trust_domain": "registry",
+      "witness_id": "w-4626db3c2b8698b3"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "4d9b0cc3f8e1a625a73ad52d87de256c03d8232f547343d89117ab6e29bbae00",
+      "sha256": "4d9b0cc3f8e1a625a73ad52d87de256c03d8232f547343d89117ab6e29bbae00",
+      "trust_domain": "registry",
+      "witness_id": "w-4d9b0cc3f8e1a625"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "500e18c283256565298957e6b1c359f6dd1d5af15b8a259d5da18f93c2600fb2",
+      "sha256": "500e18c283256565298957e6b1c359f6dd1d5af15b8a259d5da18f93c2600fb2",
+      "trust_domain": "registry",
+      "witness_id": "w-500e18c283256565"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "5cc702aa9b6545f5f236f0e832ee5b32631df6725cc6660acaf9fef2ceca97c9",
+      "sha256": "5cc702aa9b6545f5f236f0e832ee5b32631df6725cc6660acaf9fef2ceca97c9",
+      "trust_domain": "registry",
+      "witness_id": "w-5cc702aa9b6545f5"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "6108614a2b3d525495024fc1c2bed590b693f52bb03b14c2912f2f40ca18b9e8.eval",
+      "sha256": "6108614a2b3d525495024fc1c2bed590b693f52bb03b14c2912f2f40ca18b9e8",
+      "trust_domain": "runner",
+      "witness_id": "w-6108614a2b3d5254"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "679c1329a1747f68b5192d2101afc742401d290e9e19b86c9f0affbdc66cac85.eval",
+      "sha256": "679c1329a1747f68b5192d2101afc742401d290e9e19b86c9f0affbdc66cac85",
+      "trust_domain": "runner",
+      "witness_id": "w-679c1329a1747f68"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "8d1b58541ac5ab72f97bcfe98d4ff2fafca2b3403fe1710a1ca3cf0ce1dd581b",
+      "sha256": "8d1b58541ac5ab72f97bcfe98d4ff2fafca2b3403fe1710a1ca3cf0ce1dd581b",
+      "trust_domain": "registry",
+      "witness_id": "w-8d1b58541ac5ab72"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "aeb858a6a563c16e99610b7f7a947d127551babef590e96d935aa6701f81f690",
+      "sha256": "aeb858a6a563c16e99610b7f7a947d127551babef590e96d935aa6701f81f690",
+      "trust_domain": "registry",
+      "witness_id": "w-aeb858a6a563c16e"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "bd0aad16fab15da04f187b1af02a1a7f010c69547b00e9c417add1fa15278e3e",
+      "sha256": "bd0aad16fab15da04f187b1af02a1a7f010c69547b00e9c417add1fa15278e3e",
+      "trust_domain": "registry",
+      "witness_id": "w-bd0aad16fab15da0"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "population.json",
+      "sha256": "be478cb1e68bfafd37b7c2059433716ea6d11eb0660441cfd6b9d7a40fef7a89",
+      "trust_domain": "registry",
+      "witness_id": "w-be478cb1e68bfafd"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "dd1a40b9bd7d47cbefd7a535c383842150df4de9da02c95c6813d3a11483b9ac",
+      "sha256": "dd1a40b9bd7d47cbefd7a535c383842150df4de9da02c95c6813d3a11483b9ac",
+      "trust_domain": "registry",
+      "witness_id": "w-dd1a40b9bd7d47cb"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "registry-reads.json",
+      "sha256": "fb0050a8d4d9c8631051eb5c3acd5d9292f4d53d02cd24776f1b70532499e5f0",
+      "trust_domain": "registry",
+      "witness_id": "w-fb0050a8d4d9c863"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "fe15d293aa055b7259ba346e064001b494cda591d7238a7be6b2845b66d818f3.eval",
+      "sha256": "fe15d293aa055b7259ba346e064001b494cda591d7238a7be6b2845b66d818f3",
+      "trust_domain": "runner",
+      "witness_id": "w-fe15d293aa055b72"
+    }
+  ]
+}

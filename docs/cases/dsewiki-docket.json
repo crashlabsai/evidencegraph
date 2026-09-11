@@ -1,0 +1,924 @@
+{
+  "answers": [
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-d1ca624546f4fa644b0c465153d4b3d7",
+        "ref-98ee496d4807e3be3a6958d6930bdb92",
+        "ref-514261689040b2c8add05cbad214a0a8",
+        "ref-dbb283f2dfc0bbe19c5221d94cde4097",
+        "ref-f3b6497c4849c5e3bc0ab1cb8460e498",
+        "ref-dc489f6e11f755af4c1a603935c4abd3"
+      ],
+      "coverage_ids": [],
+      "gaps": [
+        "Observed write-date cut, not true swarm start/end; reported accuracy is not independently calibrated"
+      ],
+      "headline": "14,591 revisions across 4 wikis; reported revision uncertainty ±1s",
+      "numbers": {
+        "grade_mix": {
+          "rclog": 103,
+          "reqlog": 14482,
+          "write_date": 6
+        },
+        "per_wiki": [
+          {
+            "citation_ids": [
+              "ref-5bf8de736e138bc94cdc9f7eb6ea6c5a",
+              "ref-d0449f501eab57c6f5e761da0f3b7b75"
+            ],
+            "end_interval": [
+              "2026-06-22T08:46:17+00:00",
+              "2026-06-22T08:46:19+00:00"
+            ],
+            "grades": {
+              "write_date": 6
+            },
+            "nonempty_labels": 2,
+            "pages": 2,
+            "revisions": 6,
+            "start_interval": [
+              "2026-06-22T08:42:56+00:00",
+              "2026-06-22T08:42:58+00:00"
+            ],
+            "wiki": "dorfwiki"
+          },
+          {
+            "citation_ids": [
+              "ref-17ea9c402c60b20bbe9cf5ea0661b033",
+              "ref-31c777e3ecc5fa6e4e83a95d1b178357"
+            ],
+            "end_interval": [
+              "2026-07-02T17:24:39+00:00",
+              "2026-07-02T17:24:41+00:00"
+            ],
+            "grades": {
+              "rclog": 44,
+              "reqlog": 13359
+            },
+            "nonempty_labels": 3013,
+            "pages": 3908,
+            "revisions": 13403,
+            "start_interval": [
+              "2026-05-24T06:02:18+00:00",
+              "2026-05-24T06:02:20+00:00"
+            ],
+            "wiki": "dse"
+          },
+          {
+            "citation_ids": [
+              "ref-d61995a989274dbf580fed5904ca17b7",
+              "ref-6f40e44bd64257d649dfb64ea5a9e6bb"
+            ],
+            "end_interval": [
+              "2026-07-01T00:19:38+00:00",
+              "2026-07-01T00:19:40+00:00"
+            ],
+            "grades": {
+              "rclog": 37,
+              "reqlog": 132
+            },
+            "nonempty_labels": 86,
+            "pages": 68,
+            "revisions": 169,
+            "start_interval": [
+              "2026-05-24T06:21:15+00:00",
+              "2026-05-24T06:21:17+00:00"
+            ],
+            "wiki": "fractal"
+          },
+          {
+            "citation_ids": [
+              "ref-378127504bc2c9643f22bbda31b651ee",
+              "ref-ca7b3a8c4b5b2e13279f5281124990e9"
+            ],
+            "end_interval": [
+              "2026-07-02T17:51:21+00:00",
+              "2026-07-02T17:51:23+00:00"
+            ],
+            "grades": {
+              "rclog": 22,
+              "reqlog": 991
+            },
+            "nonempty_labels": 20,
+            "pages": 601,
+            "revisions": 1013,
+            "start_interval": [
+              "2026-05-24T11:56:30+00:00",
+              "2026-05-24T11:56:32+00:00"
+            ],
+            "wiki": "probier"
+          }
+        ]
+      },
+      "outcome": "supported",
+      "question_id": "DQ1"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-312de219eb57ca44204dfacefbcf1e20",
+        "ref-b8f74c824f938edf418a82ab856ba742",
+        "ref-bc03862458e1475e4df6f927ea3db1d1",
+        "ref-d5bc333c6744f7ec4cbccc4cb2e025f0",
+        "ref-be53213784bd9fc6d71c643194a6fa82",
+        "ref-c41266bd06e1ee9891b8de1441a76c78",
+        "ref-d0f2e689522704da42f7f06973e95ce6",
+        "ref-e1ae0893cdb76050877d315a9f03cd23"
+      ],
+      "coverage_ids": [],
+      "gaps": [
+        "No authenticated actor identities; human labels are publisher assertions",
+        "Cloud prefixes and claimed names do not prove autonomous authorship",
+        "Current reference lists cannot establish historical address ownership without dated snapshots"
+      ],
+      "headline": "31 revisions under publisher-marked human labels; 14,560 lack authenticated classification",
+      "numbers": {
+        "authenticated_actor_revisions": 0,
+        "publisher_human_label_revisions": 31,
+        "reference_matches": [
+          {
+            "n": 177,
+            "outcome": "ambiguous"
+          }
+        ],
+        "unclassifiable_revisions": 14560,
+        "unclassifiable_share": 0.9978754026454664
+      },
+      "outcome": "ambiguous",
+      "question_id": "DQ2"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-d326f72f5975878ebf4d01bc9a98f577",
+        "ref-aa7713a8be47b4ca8f8d9c3a04dfae9d",
+        "ref-6f72646ccc1ad140605e6555eacb15dd",
+        "ref-a91aa3d1d54d56a9e3256a8915c13c3b",
+        "ref-b4e36619f3cf7fa44943c0a89502ff8e",
+        "ref-83afbd86eca537baa71c7ee6faf33343"
+      ],
+      "coverage_ids": [],
+      "gaps": [
+        "Family labels describe publisher interpretation; communication purpose is not independently established",
+        "Save/delete/revert/probe populations overlap and must not be summed as incident actions"
+      ],
+      "headline": "4,579 stored pages; 49 publisher-assigned families",
+      "numbers": {
+        "event_populations": {
+          "delete": 5217,
+          "probe": 101,
+          "revert": 4,
+          "save": 14591
+        },
+        "families": {
+          "aihw-pbs": {
+            "deletions": 9,
+            "pages": 8,
+            "recreations": 0,
+            "revisions": 9
+          },
+          "alaska-climate": {
+            "deletions": 1,
+            "pages": 1,
+            "recreations": 0,
+            "revisions": 3
+          },
+          "dataafrica-health-stunting": {
+            "deletions": 1,
+            "pages": 1,
+            "recreations": 0,
+            "revisions": 1
+          },
+          "dataafrica-rainfed-crops": {
+            "deletions": 1,
+            "pages": 1,
+            "recreations": 0,
+            "revisions": 7
+          },
+          "datausa-cashier-skills": {
+            "deletions": 2,
+            "pages": 2,
+            "recreations": 0,
+            "revisions": 3
+          },
+          "datausa-cashiers-bachelors": {
+            "deletions": 8,
+            "pages": 8,
+            "recreations": 0,
+            "revisions": 39
+          },
+          "datausa-cashiers-masters": {
+            "deletions": 76,
+            "pages": 76,
+            "recreations": 0,
+            "revisions": 327
+          },
+          "datausa-clothing-workforce": {
+            "deletions": 98,
+            "pages": 98,
+            "recreations": 0,
+            "revisions": 491
+          },
+          "datausa-construction-wage": {
+            "deletions": 3,
+            "pages": 2,
+            "recreations": 1,
+            "revisions": 5
+          },
+          "datausa-construction-workforce": {
+            "deletions": 45,
+            "pages": 45,
+            "recreations": 0,
+            "revisions": 280
+          },
+          "datausa-elpaso-foreign-born": {
+            "deletions": 2,
+            "pages": 2,
+            "recreations": 0,
+            "revisions": 2
+          },
+          "datausa-enrollment-asian": {
+            "deletions": 6,
+            "pages": 2,
+            "recreations": 4,
+            "revisions": 35
+          },
+          "datausa-finance-gender-gap": {
+            "deletions": 12,
+            "pages": 12,
+            "recreations": 0,
+            "revisions": 67
+          },
+          "datausa-grocery-workforce": {
+            "deletions": 78,
+            "pages": 78,
+            "recreations": 0,
+            "revisions": 349
+          },
+          "datausa-ivy-tuition": {
+            "deletions": 2,
+            "pages": 2,
+            "recreations": 0,
+            "revisions": 36
+          },
+          "datausa-language-french": {
+            "deletions": 31,
+            "pages": 31,
+            "recreations": 0,
+            "revisions": 214
+          },
+          "datausa-maids-wage": {
+            "deletions": 20,
+            "pages": 20,
+            "recreations": 0,
+            "revisions": 148
+          },
+          "datausa-occupation-salary-61-62": {
+            "deletions": 8,
+            "pages": 8,
+            "recreations": 0,
+            "revisions": 62
+          },
+          "datausa-police-wage-age": {
+            "deletions": 21,
+            "pages": 17,
+            "recreations": 4,
+            "revisions": 101
+          },
+          "datausa-poverty-county": {
+            "deletions": 28,
+            "pages": 28,
+            "recreations": 0,
+            "revisions": 144
+          },
+          "datausa-poverty-state": {
+            "deletions": 4,
+            "pages": 4,
+            "recreations": 0,
+            "revisions": 30
+          },
+          "datausa-production-share": {
+            "deletions": 3,
+            "pages": 3,
+            "recreations": 0,
+            "revisions": 20
+          },
+          "datausa-sector61-state": {
+            "deletions": 37,
+            "pages": 37,
+            "recreations": 0,
+            "revisions": 322
+          },
+          "datausa-slp-ethnicity": {
+            "deletions": 4,
+            "pages": 3,
+            "recreations": 1,
+            "revisions": 7
+          },
+          "datausa-transport-production": {
+            "deletions": 8,
+            "pages": 8,
+            "recreations": 0,
+            "revisions": 95
+          },
+          "fuel-poverty-ni": {
+            "deletions": 2,
+            "pages": 2,
+            "recreations": 0,
+            "revisions": 12
+          },
+          "gapminder-age80": {
+            "deletions": 1,
+            "pages": 1,
+            "recreations": 0,
+            "revisions": 1
+          },
+          "ihme-cvd-deaths": {
+            "deletions": 35,
+            "pages": 32,
+            "recreations": 3,
+            "revisions": 205
+          },
+          "ihme-family-planning": {
+            "deletions": 21,
+            "pages": 21,
+            "recreations": 0,
+            "revisions": 76
+          },
+          "ihme-lymphatic-filariasis": {
+            "deletions": 1,
+            "pages": 1,
+            "recreations": 0,
+            "revisions": 19
+          },
+          "ihme-mcv2": {
+            "deletions": 3,
+            "pages": 2,
+            "recreations": 1,
+            "revisions": 13
+          },
+          "ihme-smoking": {
+            "deletions": 1,
+            "pages": 1,
+            "recreations": 0,
+            "revisions": 8
+          },
+          "loop-chain-infrastructure": {
+            "deletions": 339,
+            "pages": 339,
+            "recreations": 0,
+            "revisions": 353
+          },
+          "mixed-task": {
+            "deletions": 7,
+            "pages": 7,
+            "recreations": 0,
+            "revisions": 72
+          },
+          "nyc-veterans": {
+            "deletions": 3,
+            "pages": 3,
+            "recreations": 0,
+            "revisions": 43
+          },
+          "oecd-equity": {
+            "deletions": 112,
+            "pages": 99,
+            "recreations": 13,
+            "revisions": 452
+          },
+          "oecd-household-income": {
+            "deletions": 1,
+            "pages": 1,
+            "recreations": 0,
+            "revisions": 11
+          },
+          "oecd-regional-co2": {
+            "deletions": 6,
+            "pages": 6,
+            "recreations": 0,
+            "revisions": 48
+          },
+          "off_store_unclassified": {
+            "deletions": 0,
+            "pages": 671,
+            "recreations": 0,
+            "revisions": 1188
+          },
+          "probe-test": {
+            "deletions": 239,
+            "pages": 236,
+            "recreations": 3,
+            "revisions": 319
+          },
+          "relay-coordination": {
+            "deletions": 735,
+            "pages": 709,
+            "recreations": 28,
+            "revisions": 5441
+          },
+          "sdg-index-score": {
+            "deletions": 1,
+            "pages": 1,
+            "recreations": 0,
+            "revisions": 8
+          },
+          "source-cache-url-list": {
+            "deletions": 1234,
+            "pages": 1231,
+            "recreations": 5,
+            "revisions": 2109
+          },
+          "source-or-unclassified": {
+            "deletions": 678,
+            "pages": 677,
+            "recreations": 2,
+            "revisions": 870
+          },
+          "uefa-pass-accuracy": {
+            "deletions": 3,
+            "pages": 3,
+            "recreations": 0,
+            "revisions": 41
+          },
+          "unaids-bosnia-hiv": {
+            "deletions": 1,
+            "pages": 1,
+            "recreations": 0,
+            "revisions": 1
+          },
+          "unknown": {
+            "deletions": 35,
+            "pages": 34,
+            "recreations": 1,
+            "revisions": 44
+          },
+          "vermont-rent": {
+            "deletions": 2,
+            "pages": 3,
+            "recreations": 0,
+            "revisions": 459
+          },
+          "world-poverty-clock": {
+            "deletions": 1,
+            "pages": 1,
+            "recreations": 0,
+            "revisions": 1
+          }
+        }
+      },
+      "outcome": "supported",
+      "question_id": "DQ3"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-d1ca624546f4fa644b0c465153d4b3d7",
+        "ref-98ee496d4807e3be3a6958d6930bdb92"
+      ],
+      "coverage_ids": [],
+      "gaps": [
+        "Not-computable checks require unpublished raw logs, unredacted IPs or original acquisition measurements"
+      ],
+      "headline": "2 differs, 89 exact, 95 not_computable",
+      "numbers": {
+        "fact_statuses": {
+          "differs": 2,
+          "exact": 89,
+          "not_computable": 95
+        }
+      },
+      "outcome": "supported",
+      "question_id": "DQ4"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-d0f2e689522704da42f7f06973e95ce6",
+        "ref-e1ae0893cdb76050877d315a9f03cd23",
+        "ref-c3162b420a6464161ebacd25a0129f98",
+        "ref-da3444bdf685cd6685aa08e3b8df90df",
+        "ref-ab380e4034c42b22746a3c27808c2fe1",
+        "ref-3d9796e9dce202456ba3a74fa77ad7dc"
+      ],
+      "coverage_ids": [],
+      "gaps": [
+        "Shared labels and /16 networks are hypotheses only; none authenticate the same actor"
+      ],
+      "headline": "3,102 nonempty labels; actor count not identifiable",
+      "numbers": {
+        "anonymous_revisions": 899,
+        "identity_edges": [
+          {
+            "method": "same_claimed_label",
+            "n": 3102,
+            "outcome": "ambiguous"
+          },
+          {
+            "method": "shared_ip16",
+            "n": 8376,
+            "outcome": "ambiguous"
+          }
+        ],
+        "nonempty_labels": 3102
+      },
+      "outcome": "ambiguous",
+      "question_id": "DQ5"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-b706f2e00c6d1f112ee0e8bbcfc51d77",
+        "ref-ca9ad3425743521133ab8f2d81a8f9a5",
+        "ref-6b270ee1577d3e767fd9d75fd7a509d9",
+        "ref-ebfda805fe438968f2ce3b3472bbf396",
+        "ref-945a0cdcff69d0ac8024f0feb28b9baf",
+        "ref-9f8b3c144487c9b3b3cd562246cbd173"
+      ],
+      "coverage_ids": [],
+      "gaps": [
+        "Diff ancestry and identical text do not establish who invented a technique or causal copying",
+        "Links in text do not prove off-wiki visits"
+      ],
+      "headline": "Observed lineage for relay-coordination; originating actor remains unknown",
+      "numbers": {
+        "earliest_observed": [
+          {
+            "citation_id": "ref-b706f2e00c6d1f112ee0e8bbcfc51d77",
+            "label": "OpenDataResearcher",
+            "revision": "dse~Node50166915Test@1",
+            "time_lower": "2026-05-26T09:50:01+00:00",
+            "time_upper": "2026-05-26T09:50:03+00:00"
+          },
+          {
+            "citation_id": "ref-ca9ad3425743521133ab8f2d81a8f9a5",
+            "label": "ResearchHelper4",
+            "revision": "dse~FooBarPct2526Baz@1",
+            "time_lower": "2026-05-26T09:56:32+00:00",
+            "time_upper": "2026-05-26T09:56:34+00:00"
+          },
+          {
+            "citation_id": "ref-6b270ee1577d3e767fd9d75fd7a509d9",
+            "label": "ResearcherABC",
+            "revision": "dse~TmpOurPage92837ZZ@1",
+            "time_lower": "2026-05-26T10:31:33+00:00",
+            "time_upper": "2026-05-26T10:31:35+00:00"
+          },
+          {
+            "citation_id": "ref-ebfda805fe438968f2ce3b3472bbf396",
+            "label": "AsciiNormalizer",
+            "revision": "dse~RecentChanges@26",
+            "time_lower": "2026-05-26T13:13:20+00:00",
+            "time_upper": "2026-05-26T13:13:22+00:00"
+          },
+          {
+            "citation_id": "ref-945a0cdcff69d0ac8024f0feb28b9baf",
+            "label": "OpenDataResearchBot",
+            "revision": "dse~QuarterlyBalancePublicSources@1",
+            "time_lower": "2026-05-26T13:51:54+00:00",
+            "time_upper": "2026-05-26T13:51:56+00:00"
+          }
+        ],
+        "lineage_counts": [
+          {
+            "kind": "built_on",
+            "method": "rcs_diff_base:previous_revision",
+            "n": 10012
+          },
+          {
+            "kind": "reproduced",
+            "method": "exact_source_sha256",
+            "n": 5112
+          },
+          {
+            "kind": "reproduced",
+            "method": "normalized_whitespace",
+            "n": 5974
+          }
+        ],
+        "selected_family": "relay-coordination"
+      },
+      "outcome": "supported",
+      "question_id": "DQ6"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-d0f2e689522704da42f7f06973e95ce6",
+        "ref-e1ae0893cdb76050877d315a9f03cd23",
+        "ref-c3162b420a6464161ebacd25a0129f98",
+        "ref-da3444bdf685cd6685aa08e3b8df90df",
+        "ref-ab380e4034c42b22746a3c27808c2fe1",
+        "ref-3d9796e9dce202456ba3a74fa77ad7dc"
+      ],
+      "coverage_ids": [],
+      "gaps": [
+        "events.jsonl save rows are generated from revisions, not all save requests",
+        "save_requests label denominators come from DSE edit_actors.jsonl; other wiki denominators are unpublished",
+        "Capture-recapture independence fails; model intervals are not population bounds"
+      ],
+      "headline": "Request coverage unavailable per wiki; DSE label retention is conditional on publisher totals",
+      "numbers": {
+        "capture_recapture": [
+          {
+            "assumption_violations": [
+              "Published save events are generated from stored revisions, not an independent request capture",
+              "A stored revision implies a request; raw request logs are unavailable"
+            ],
+            "assumptions": [
+              "Closed population",
+              "Independent capture mechanisms",
+              "Equal catchability within each witness",
+              "Exact record linkage without false matches"
+            ],
+            "id": "cr-published-save-events-stored-revisions-record",
+            "interpretation": "Non-identifiable under observed dependence; only observed union 14591 is a lower bound. Model interval is not a population bound.",
+            "interval": [
+              14591.0,
+              14591.0
+            ],
+            "level": 0.95,
+            "m_both": 14591,
+            "n_a": 14591,
+            "n_b": 14591,
+            "n_hat_chapman": 14591.0,
+            "unit_kind": "record",
+            "witness_a": "published-save-events",
+            "witness_b": "stored-revisions"
+          }
+        ],
+        "dse_label_retention_totals": {
+          "labels": 3015,
+          "requests": 39364,
+          "stored_revisions": 13222
+        }
+      },
+      "outcome": "ambiguous",
+      "question_id": "DQ7"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [
+        "ref-d1ca624546f4fa644b0c465153d4b3d7",
+        "ref-98ee496d4807e3be3a6958d6930bdb92",
+        "ref-514261689040b2c8add05cbad214a0a8",
+        "ref-dbb283f2dfc0bbe19c5221d94cde4097",
+        "ref-f3b6497c4849c5e3bc0ab1cb8460e498",
+        "ref-dc489f6e11f755af4c1a603935c4abd3"
+      ],
+      "coverage_ids": [],
+      "gaps": [
+        "Raw logs cited by the publisher are not acquired witnesses",
+        "Publication selection and deletions limit coverage",
+        "A source citation proves what was published, not the underlying actor or clock"
+      ],
+      "headline": "Unauthenticated actors; dependent export witnesses; unpublished raw request logs",
+      "numbers": {
+        "grade_mix": {
+          "rclog": 103,
+          "reqlog": 14482,
+          "write_date": 6
+        },
+        "not_computable_facts": 95,
+        "witnesses": 13
+      },
+      "outcome": "supported",
+      "question_id": "DQ8"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No staged registry evidence ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "LQ1"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No staged registry evidence ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "LQ2"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No staged registry evidence ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "LQ3"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No staged registry evidence ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "LQ4"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No staged registry evidence ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "LQ5"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No staged registry evidence ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "LQ6"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No staged registry evidence ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "LQ7"
+    },
+    {
+      "assumptions": [],
+      "citation_ids": [],
+      "coverage_ids": [],
+      "gaps": [
+        "No staged registry evidence ingested"
+      ],
+      "headline": "Not assessable from available witnesses",
+      "numbers": {},
+      "outcome": "not_assessable",
+      "question_id": "LQ8"
+    }
+  ],
+  "entity_counts": [
+    {
+      "n": 11867,
+      "subkind": "body"
+    },
+    {
+      "n": 3103,
+      "subkind": "label"
+    },
+    {
+      "n": 23877,
+      "subkind": "link"
+    },
+    {
+      "n": 61013,
+      "subkind": "network_prefix"
+    },
+    {
+      "n": 4579,
+      "subkind": "page"
+    },
+    {
+      "n": 49,
+      "subkind": "page_family"
+    },
+    {
+      "n": 13703,
+      "subkind": "record"
+    },
+    {
+      "n": 14591,
+      "subkind": "revision"
+    },
+    {
+      "n": 35,
+      "subkind": "site"
+    },
+    {
+      "n": 19913,
+      "subkind": "wiki_event"
+    }
+  ],
+  "schema_version": "0.1",
+  "title": "DseWiki: published evidence reconstruction",
+  "validation": null,
+  "witnesses": [
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "site-coverage.csv",
+      "sha256": "1091014ca713391dd68d9c658550b2a00e15cee83e53513aa07f9b1862efda01",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-1091014ca713391d"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "other-wikis.json",
+      "sha256": "130d34ef80b591f49d123793d39dcd9d94ee5598b962803ee231047eea22e03a",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-130d34ef80b591f4"
+    },
+    {
+      "coverage_claim": "Reference-list snapshot at acquisition; historical applicability requires dated evidence",
+      "filename": "chatgpt-user.json",
+      "sha256": "1e4a605152e8505742072ee93703996a7047d88e6476cecdaff15c4e09b6874e",
+      "trust_domain": "openai-allowlist",
+      "witness_id": "w-1e4a605152e85057"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "coverage-gaps.csv",
+      "sha256": "1f9f80864910d4c49e8ff24a35b1931b87eaeae9d1282c3efa3d6d7b0ee279dd",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-1f9f80864910d4c4"
+    },
+    {
+      "coverage_claim": "Reference-list snapshot at acquisition; historical applicability requires dated evidence",
+      "filename": "azure-20260907.json",
+      "sha256": "4053f8218e77e5e2c4816ec2a0ea33559c4dcf47ad9f2a498e61fc71361e4c07",
+      "trust_domain": "microsoft-servicetags",
+      "witness_id": "w-4053f8218e77e5e2"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "shortener-logs.json",
+      "sha256": "40b49e3e7e223dd349aa8a465aa7dabd9db8515b7f0533f047c8e1087d5ef01d",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-40b49e3e7e223dd3"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "events.jsonl",
+      "sha256": "588584295f1c4a7c3d90b04075ab151504f165ff069534d935cda08853ec28b1",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-588584295f1c4a7c"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "revisions.jsonl",
+      "sha256": "60df4a515178230aa952d9f64f6215aea4bd95ab2f05e31e484cf9b887e3f793",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-60df4a515178230a"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "pages.jsonl",
+      "sha256": "92b296170b496b836cdf5ef783bed9465d2d75db7e1a0becec1c36c8b7c42cfd",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-92b296170b496b83"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "links.jsonl",
+      "sha256": "9ef4c6771d37e94aa7e8448f8f2ce9fe78915729e2ef70cae6fcfbce58ef44d9",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-9ef4c6771d37e94a"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "manifest.json",
+      "sha256": "b6d53e16b5d9a6a0a98d4577238835ee7a574d7d10a8f1312330b4e626c6ba2b",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-b6d53e16b5d9a6a0"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "labels.jsonl",
+      "sha256": "d94aecd84baecda46344f5b8726a95a9c81e7e41a1c0969fc89a90c8906f0388",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-d94aecd84baecda4"
+    },
+    {
+      "coverage_claim": "Published file; completeness not independently established",
+      "filename": "records.jsonl",
+      "sha256": "f41af25fa0b16f88522ba9924f175400eeb9461332568eaca39a34010bb746ed",
+      "trust_domain": "publisher-export",
+      "witness_id": "w-f41af25fa0b16f88"
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+"""Common publication boundary for question-driven derived tables."""
+
+from collections.abc import Callable, Iterable
+from pathlib import Path
+
+from evidencegraph.case import configuration
+from evidencegraph.ids import relation_id
+from evidencegraph.manifest import update_manifest_stage
+from evidencegraph.publication import case_publication_transaction
+from evidencegraph.schema import CaseConfig, Outcome, Relation, RelationKind, TrustDomainRelation
+from evidencegraph.store import PartitionWriter, Store, validate_graph
+
+
+def trust_relation(config: CaseConfig, manifest: dict, witness_ids: Iterable[str]) -> str:
+    domains = {manifest["witnesses"][w]["trust_domain"] for w in witness_ids}
+    if len(domains) == 1:
+        return "same"
+    relations = {d.id: d.related_to for d in config.trust_domains}
+    pairs = []
+    for a in domains:
+        for b in domains:
+            if a < b:
+                pairs.append(relations[a].get(b, relations[b].get(a, "unknown")))
+    if pairs and all(p == "independent" for p in pairs):
+        return "independent"
+    if pairs and all(p == "same" for p in pairs):
+        return "same"
+    return "unknown"
+
+
+def edge(
+    kind: RelationKind,
+    subject: dict,
+    obj: dict,
+    *,
+    method: str,
+    rationale: str,
+    outcome: str = "supported",
+    candidates: tuple[str, ...] = (),
+    domain: str = "same",
+    run_id: str = "derived",
+    authenticated: bool = False,
+) -> Relation:
+    return Relation(
+        relation_id=relation_id(kind, subject["entity_id"], obj["entity_id"], method),
+        kind=kind,
+        subject_id=subject["entity_id"],
+        object_id=obj["entity_id"],
+        outcome=Outcome(outcome),
+        method=method,
+        rationale=rationale,
+        witness_ids=tuple(sorted({subject["witness_id"], obj["witness_id"]})),
+        citation_ids=tuple(sorted({subject["citation_id"], obj["citation_id"]})),
+        candidates=candidates,
+        trust_domain_relation=TrustDomainRelation(domain),
+        authenticated=authenticated,
+        run_id=run_id,
+    )
+
+
+def run_stage(root: Path, name: str, derive: Callable, *, params: dict | None = None) -> dict:
+    config = configuration(root)
+    with case_publication_transaction(root) as manifest:
+        if not manifest["partitions"]:
+            raise ValueError("ingest witnesses first")
+        manifest["partitions"].pop(name, None)
+        if name not in {"facts", "identity", "lineage"}:
+            manifest.pop("validation", None)
+        for downstream in ("coverage", "docket"):
+            if downstream != name:
+                manifest["partitions"].pop(downstream, None)
+                manifest["stages"].pop(downstream, None)
+        manifest["reports"] = {}
+        writer = PartitionWriter(root, name)
+        with Store(root, manifest) as store:
+            for table, row in derive(store, config, manifest):
+                writer.add(table, row)
+        partition = writer.finish()
+        manifest["partitions"][name] = partition
+        update_manifest_stage(manifest, name, params=params)
+        with Store(root, manifest) as store:
+            validate_graph(store)
+    return {table: data["rows"] for table, data in partition.items()}
