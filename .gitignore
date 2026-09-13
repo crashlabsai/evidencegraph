@@ -1,15 +1,42 @@
+# Python
 .venv/
 __pycache__/
 *.py[cod]
-.pytest_cache/
-.ruff_cache/
-.coverage
+*.egg-info/
 build/
 dist/
-*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+
+# Case outputs, bundles and lab collections. Private truth is never committed.
 /cases/
-/.context/
+/logs/
+private/
+truth/
+*.duckdb
 *.duckdb.wal
+*.eval
+
+# Secrets and local environment
 .env
 .env.*
+
+# Internal build notes, plans and brainstorms: not for the public repository.
+# Agent-to-agent context lives in .context/ (Conductor); human notes in internal/.
+/.context/
+/internal/
+
+# Agent and editor state
+.claude/settings.local.json
+.codex/
+.conductor/
+.idea/
+.vscode/
+
+# OS
 .DS_Store
