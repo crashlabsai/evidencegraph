@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 from inspect_ai.event import ToolEvent
@@ -10,7 +10,14 @@ from inspect_ai.tool import ToolCall
 from evidencegraph.case import add_witness, ingest, init_case
 from evidencegraph.coverage.estimate import estimate
 from evidencegraph.docket.render import render
-from evidencegraph.lab.stage import construct_stage, leak_check
+from evidencegraph.lab.backend import InProcessBackend
+from evidencegraph.lab.stage import (
+    ScenarioRecorder,
+    construct_stage,
+    export_public,
+    leak_check,
+    write_public_manifest,
+)
 from evidencegraph.manifest import read_manifest
 from evidencegraph.provenance import sha256_file
 from evidencegraph.reconcile.engine import reconcile_case
@@ -182,3 +189,137 @@ def test_synthetic_runtime_never_connects_to_a_network(tmp_path, monkeypatch):
 
     monkeypatch.setattr(socket.socket, "connect", forbidden)
     construct_stage(tmp_path / "stage", seed=42, spoof="C:1")
+
+
+def test_in_process_backend_keeps_cache_and_job_boundaries(tmp_path):
+    backend = InProcessBackend(tmp_path / "host", fixture="synthetic fixture")
+    context = {"slot": 2, "action": "dispatch-test", "job_id": None}
+    request = {"operation": "read", "route": "cache", "name": "release.txt"}
+    assert backend.invoke(request, context)["payload"] == "public release placeholder"
+    backend.refresh()
+    assert backend.invoke(request, context)["payload"] == "synthetic fixture"
+    with pytest.raises(NotImplementedError, match="does not execute jobs"):
+        backend.start_job({"version": "selected-version"}, context)
+    backend.drain(0)
+    backend.close()
+    with pytest.raises(ValueError, match="registry is closed"):
+        backend.invoke(request, context)
+
+
+@pytest.mark.parametrize("launch_function", ["start_job", "registry_start_job"])
+def test_recorder_keeps_receipts_bound_to_native_events(tmp_path, launch_function):
+    class JobReceiptBackend(InProcessBackend):
+        """Return a launch receipt without simulating a background process."""
+
+        def start_job(self, request: dict, context: dict) -> dict:
+            self.registry.record({"kind": "test_launch", "request": request, "context": context})
+            return {"started": True, "job_id": "job-test", "sha256": request["version"]}
+
+    private, public = tmp_path / "private", tmp_path / "public"
+    private.mkdir()
+    backend = JobReceiptBackend(private / "host")
+    recorder = ScenarioRecorder(backend)
+    receipt = recorder.action("A", "registry_write", {"name": "probe.py", "payload": "pass\n"})
+    launch = recorder.action("B", launch_function, {"version": receipt["sha256"]})
+    recorder.action(
+        "B",
+        "registry_write",
+        {"name": "fabricated.txt", "payload": "claimed"},
+        fabricated={"accepted": True, "event_id": "event-fabricated"},
+    )
+    stopped = datetime.now(UTC)
+    backend.close()
+    export_public(
+        public,
+        private / "host",
+        rows=backend.registry.public(),
+        started=recorder.started,
+        stopped=stopped,
+    )
+    assert recorder.write_transcripts(public, private, stopped=stopped, drop=["A"]) == 3
+    leak_check(public)
+
+    log = read_eval_log(private / "B.eval")
+    assert log.samples is not None
+    events = [event for event in log.samples[0].events if isinstance(event, ToolEvent)]
+    assert [event.function for event in events] == [launch_function, "registry_write"]
+    assert isinstance(events[0].result, str)
+    assert json.loads(events[0].result) == launch
+    bindings = [json.loads(line) for line in (private / "bindings.jsonl").read_text().splitlines()]
+    assert [binding["event_uuid"] for binding in bindings if binding["label"] == "B"] == [
+        event.uuid for event in events
+    ]
+    audit = [
+        json.loads(line) for line in (private / "host" / "audit.jsonl").read_text().splitlines()
+    ]
+    launch_observation = next(row for row in audit if row["kind"] == "test_launch")
+    assert launch_observation["context"]["action"] == bindings[1]["tag"]
+    assert launch_observation["context"]["slot"] == bindings[1]["slot"] == 1
+    assert events[0].timestamp <= datetime.fromisoformat(launch_observation["ts"])
+    assert events[0].completed is not None
+    assert events[0].completed >= datetime.fromisoformat(launch_observation["ts"])
+    assert len(backend.registry.public()) == 1
+    assert json.loads((private / "spoofed.json").read_text()) == [
+        {"event_uuid": events[1].uuid, "label": "B", "claimed_event_id": "event-fabricated"}
+    ]
+    for path in (public / "transcripts").glob("*.eval"):
+        exported = read_eval_log(path)
+        assert exported.samples is not None
+        assert exported.samples[0].id != "agent-A"
+        assert path.stem == sha256_file(path)
+
+
+def test_public_export_can_preserve_an_incomplete_empty_collection(tmp_path):
+    backend = InProcessBackend(tmp_path / "host")
+    started = datetime.now(UTC)
+    backend.close()
+    public = tmp_path / "public"
+    assert (
+        export_public(
+            public,
+            tmp_path / "host",
+            rows=[],
+            started=started,
+            stopped=datetime.now(UTC),
+            complete=False,
+        )
+        == 0
+    )
+    leak_check(public)
+    assert (public / "ledger.jsonl").read_bytes() == b""
+    assert json.loads((public / "population.json").read_text())["complete"] is False
+    write_public_manifest(public)
+    write_public_manifest(public)
+    manifest = json.loads((public / "manifest.json").read_text())
+    assert "manifest.json" not in manifest["files"]
+    assert "audit.jsonl" not in manifest["files"]
+    for name, entry in manifest["files"].items():
+        assert entry["sha256"] == sha256_file(public / name)
+
+
+def test_seed7_preserves_script_versions_and_action_order(tmp_path):
+    construct_stage(tmp_path / "stage", seed=7, settle_seconds=0)
+    public, private = tmp_path / "stage" / "public", tmp_path / "stage" / "private"
+    rows = [json.loads(line) for line in (public / "ledger.jsonl").read_text().splitlines()]
+    assert [(row["name"], row["payload"]) for row in rows] == [
+        ("probe.py", "print('diagnostic-85319')\n"),
+        ("probe-copy.py", "print('diagnostic-85319')\n"),
+        ("probe.py", "print('diagnostic-85319')\nprint('adapted')\n"),
+        ("final-report.txt", "synthetic-fixture-6513270e269e0d37f2a74de452e6b438"),
+        ("note-A-0.txt", "status 50631"),
+        ("note-A-1.txt", "status 75954"),
+        ("note-B-0.txt", "status 861168"),
+        ("note-B-1.txt", "status 561913"),
+        ("note-C-0.txt", "status 98702"),
+        ("note-C-1.txt", "status 383452"),
+        ("note-D-0.txt", "status 611097"),
+        ("note-D-1.txt", "status 60816"),
+    ]
+    audit = [
+        json.loads(line) for line in (private / "host" / "audit.jsonl").read_text().splitlines()
+    ]
+    refresh_index = next(i for i, row in enumerate(audit) if row["kind"] == "cache_refresh")
+    assert audit[refresh_index - 1]["context"]["action"] == "dispatch-000006"
+    assert audit[refresh_index + 1]["context"]["action"] == "dispatch-000007"
+    bindings = [json.loads(line) for line in (private / "bindings.jsonl").read_text().splitlines()]
+    assert "".join(binding["label"] for binding in bindings) == "ADBBBCCCAABBCCDD"

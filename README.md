@@ -56,6 +56,12 @@ another's, reconciles, scores the answers against private truth the graph never
 reads, and exports a bundle. No Docker, credentials or paid model calls. Use a new
 output directory each run.
 
+To collect a scripted background-process incident with Docker on Linux or Docker
+Desktop, see [the Docker collection recipe](docs/getting-started.md#collect-with-docker).
+The collector is available; public host-observation ingestion and job/clock
+adjudication are still pending. Collection success alone does not validate LQ2,
+LQ3 or LQ7.
+
 ## Use it on your own logs
 
 ```sh

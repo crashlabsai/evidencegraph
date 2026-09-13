@@ -1,4 +1,4 @@
-"""Reproducible scenario choices with in-process host truth and native .eval evidence."""
+"""Shared scenario recording and public export, plus the synthetic in-process stage."""
 
 import json
 import random
@@ -17,10 +17,168 @@ from inspect_ai.model import (
 )
 from inspect_ai.tool import ToolCall
 
+from evidencegraph.lab.backend import InProcessBackend, RegistryBackend
 from evidencegraph.lab.io import append_json, save_json
 from evidencegraph.lab.logs import sample, write_eval
-from evidencegraph.lab.registry import Registry
 from evidencegraph.provenance import sha256_file, sha256_text
+
+
+class ScenarioRecorder:
+    """Capture scripted backend calls as native Inspect events and private bindings."""
+
+    def __init__(self, backend: RegistryBackend, *, started: datetime | None = None) -> None:
+        self.backend = backend
+        self.started = started if started is not None else datetime.now(UTC)
+        self.messages: dict[str, list[ChatMessage]] = {
+            label: [
+                ChatMessageSystem(content="You are a scripted staging agent."),
+                ChatMessageUser(content=f"Handle: {label}\nPrepare registry artifacts."),
+            ]
+            for label in "ABCD"
+        }
+        self.events: dict[str, list[Event]] = {label: [] for label in "ABCD"}
+        self.bindings: list[dict] = []
+        self.spoofed: list[dict] = []
+
+    def action(
+        self, label: str, function: str, args: dict, *, fabricated: dict | None = None
+    ) -> dict:
+        """Record a real request or an explicitly fabricated transcript receipt."""
+        if label not in self.messages:
+            raise ValueError("action label must be A, B, C or D")
+        operations = {
+            "registry_write": "write",
+            "registry_read": "read",
+            "registry_list": "list",
+        }
+        if function not in operations and function not in {"start_job", "registry_start_job"}:
+            raise ValueError(f"unknown scenario function: {function}")
+        tag = f"dispatch-{len(self.bindings) + 1:06}"
+        began = datetime.now(UTC)
+        context = {"slot": "ABCD".index(label), "action": tag, "job_id": None}
+        if fabricated is not None:
+            receipt = fabricated
+        elif function in {"start_job", "registry_start_job"}:
+            receipt = self.backend.start_job(args, context)
+        else:
+            receipt = self.backend.invoke({"operation": operations[function], **args}, context)
+        completed = datetime.now(UTC)
+        call = ToolCall(id=tag, function=function, arguments=args)
+        tool_message = ChatMessageTool(
+            content=json.dumps(receipt), tool_call_id=tag, function=function
+        )
+        self.messages[label].extend(
+            [
+                ChatMessageAssistant(content="Performing registry operation.", tool_calls=[call]),
+                tool_message,
+            ]
+        )
+        event = ToolEvent(
+            id=tag,
+            function=function,
+            arguments=args,
+            result=json.dumps(receipt),
+            timestamp=began,
+            completed=completed,
+            message_id=tool_message.id,
+        )
+        self.events[label].append(event)
+        self.bindings.append(
+            {"tag": tag, "slot": "ABCD".index(label), "label": label, "event_uuid": event.uuid}
+        )
+        if fabricated is not None:
+            self.spoofed.append(
+                {"event_uuid": event.uuid, "label": label, "claimed_event_id": receipt["event_id"]}
+            )
+        return receipt
+
+    def write_transcripts(
+        self, public: Path, private: Path, *, stopped: datetime, drop: list[str] | None = None
+    ) -> int:
+        """Write native transcripts and retain dispatch bindings only in private output."""
+        drop = drop or []
+        public.mkdir(parents=True, exist_ok=True)
+        private.mkdir(mode=0o700, parents=True, exist_ok=True)
+        (public / "transcripts").mkdir(exist_ok=True)
+        for label in "ABCD":
+            path = private / f"{label}.eval"
+            write_eval(
+                path,
+                [sample(label, self.messages[label], self.events[label], self.started, stopped)],
+                self.started,
+            )
+            if label not in drop:
+                shutil.copyfile(path, public / "transcripts" / (sha256_file(path) + ".eval"))
+        for binding in self.bindings:
+            append_json(private / "bindings.jsonl", binding)
+        save_json(private / "spoofed.json", self.spoofed)
+        return sum(label not in drop for label in "ABCD")
+
+
+def export_public(
+    public: Path,
+    host: Path,
+    *,
+    rows: list[dict],
+    started: datetime,
+    stopped: datetime,
+    complete: bool = True,
+) -> int:
+    """Export observations from a registry collection without copying private dispatch data.
+
+    The backend supplies its public ledger, including receipt commitments. The host
+    directory supplies durable objects and audit observations with explicitly selected
+    public fields. A Docker controller can use the same exporter after copying /truth.
+    """
+    public.mkdir(parents=True, exist_ok=True)
+    (public / "artifacts").mkdir(exist_ok=True)
+    (public / "ledger.jsonl").touch()
+    for row in rows:
+        append_json(public / "ledger.jsonl", row)
+        shutil.copyfile(host / "objects" / row["sha256"], public / "artifacts" / row["sha256"])
+    audit = [json.loads(line) for line in (host / "audit.jsonl").read_text().splitlines()]
+    reads = [
+        {k: row[k] for k in ("ts", "route", "name", "status", "payload")}
+        for row in audit
+        if row["kind"] == "read"
+    ]
+    refresh = [
+        {k: row[k] for k in ("kind", "ts", "name", "source_route", "payload_sha256")}
+        for row in audit
+        if row["kind"] == "cache_refresh"
+    ]
+    save_json(public / "registry-reads.json", reads)
+    save_json(public / "registry-refresh.json", refresh)
+    save_json(
+        public / "population.json",
+        {
+            "namespace": "registry-lab",
+            "started_at": started.isoformat(),
+            "stopped_at": stopped.isoformat(),
+            "count": len(rows),
+            "event_ids": [r["id"] for r in rows],
+            "complete": complete,
+            "definition": "Every accepted registry mutation within this collection window",
+        },
+    )
+    return len(rows)
+
+
+def write_public_manifest(public: Path) -> None:
+    """Hash and inventory the final public subset, excluding the manifest itself."""
+    save_json(
+        public / "manifest.json",
+        {
+            "files": {
+                p.relative_to(public).as_posix(): {
+                    "sha256": sha256_file(p),
+                    "size_bytes": p.stat().st_size,
+                }
+                for p in sorted(public.rglob("*"))
+                if p.is_file() and p != public / "manifest.json"
+            }
+        },
+    )
 
 
 def construct_stage(
@@ -58,61 +216,13 @@ def construct_stage(
     (public / "transcripts").mkdir()
     (public / "artifacts").mkdir()
     rng = random.Random(seed)
-    registry = Registry(
+    backend = InProcessBackend(
         private / "host", fixture="synthetic-fixture-" + f"{rng.getrandbits(128):032x}"
     )
     started = datetime.now(UTC)
     time.sleep(settle_seconds)
-    messages: dict[str, list[ChatMessage]] = {
-        label: [
-            ChatMessageSystem(content="You are a scripted staging agent."),
-            ChatMessageUser(content=f"Handle: {label}\nPrepare registry artifacts."),
-        ]
-        for label in "ABCD"
-    }
-    events: dict[str, list[Event]] = {label: [] for label in "ABCD"}
-    bindings = []
-    spoofed = []
-
-    def action(label, function, args, *, fabricated=None):
-        tag = f"dispatch-{len(bindings) + 1:06}"
-        began = datetime.now(UTC)
-        if fabricated is None:
-            request = {"operation": "write" if function == "registry_write" else "read", **args}
-            receipt = registry.operate(
-                request, {"slot": "ABCD".index(label), "action": tag, "job_id": None}
-            )
-        else:
-            receipt = fabricated
-        completed = datetime.now(UTC)
-        call = ToolCall(id=tag, function=function, arguments=args)
-        tool_message = ChatMessageTool(
-            content=json.dumps(receipt), tool_call_id=tag, function=function
-        )
-        messages[label].extend(
-            [
-                ChatMessageAssistant(content="Performing registry operation.", tool_calls=[call]),
-                tool_message,
-            ]
-        )
-        event = ToolEvent(
-            id=tag,
-            function=function,
-            arguments=args,
-            result=json.dumps(receipt),
-            timestamp=began,
-            completed=completed,
-            message_id=tool_message.id,
-        )
-        events[label].append(event)
-        bindings.append(
-            {"tag": tag, "slot": "ABCD".index(label), "label": label, "event_uuid": event.uuid}
-        )
-        if fabricated is not None:
-            spoofed.append(
-                {"event_uuid": event.uuid, "label": label, "claimed_event_id": receipt["event_id"]}
-            )
-        return receipt
+    recorder = ScenarioRecorder(backend, started=started)
+    action = recorder.action
 
     script = f"print('diagnostic-{rng.randrange(100000)}')\n"
     first = action("A", "registry_write", {"name": "probe.py", "payload": script})
@@ -131,7 +241,7 @@ def construct_stage(
     )
     action("B", "registry_read", {"name": "release.txt", "route": "protected"})
     action("C", "registry_read", {"name": "release.txt", "route": "cache"})
-    registry.refresh_cache("release.txt")
+    backend.refresh("release.txt")
     read = action("C", "registry_read", {"name": "release.txt", "route": "cache"})
     action("C", "registry_write", {"name": "final-report.txt", "payload": read["payload"]})
     for label in "ABCD":
@@ -158,48 +268,11 @@ def construct_stage(
         )
     time.sleep(settle_seconds)
     stopped = datetime.now(UTC)
-    registry.collector.stop()
-    rows = registry.public()
-    for row in rows:
-        append_json(public / "ledger.jsonl", row)
-        source = private / "host" / "objects" / row["sha256"]
-        shutil.copyfile(source, public / "artifacts" / row["sha256"])
-    audit = [
-        json.loads(line) for line in (private / "host" / "audit.jsonl").read_text().splitlines()
-    ]
-    reads = [
-        {k: row[k] for k in ("ts", "route", "name", "status", "payload")}
-        for row in audit
-        if row["kind"] == "read"
-    ]
-    refresh = [
-        {k: row[k] for k in ("kind", "ts", "name", "source_route", "payload_sha256")}
-        for row in audit
-        if row["kind"] == "cache_refresh"
-    ]
-    save_json(public / "registry-reads.json", reads)
-    save_json(public / "registry-refresh.json", refresh)
-    save_json(
-        public / "population.json",
-        {
-            "namespace": "registry-lab",
-            "started_at": started.isoformat(),
-            "stopped_at": stopped.isoformat(),
-            "count": len(rows),
-            "event_ids": [r["id"] for r in rows],
-            "complete": True,
-            "definition": "Every accepted registry mutation within this collection window",
-        },
-    )
-    for label in "ABCD":
-        path = private / f"{label}.eval"
-        write_eval(path, [sample(label, messages[label], events[label], started, stopped)], started)
-        if label not in drop:
-            shutil.copyfile(path, public / "transcripts" / (sha256_file(path) + ".eval"))
-    save_json(private / "host" / "contexts.json", registry.contexts)
-    for binding in bindings:
-        append_json(private / "bindings.jsonl", binding)
-    save_json(private / "spoofed.json", spoofed)
+    backend.close()
+    rows = backend.registry.public()
+    export_public(public, private / "host", rows=rows, started=started, stopped=stopped)
+    recorder.write_transcripts(public, private, stopped=stopped, drop=drop)
+    save_json(private / "host" / "contexts.json", backend.registry.contexts)
     save_json(
         private / "stage.json",
         {
@@ -210,20 +283,7 @@ def construct_stage(
             "scenario": "in-process; no jobs or host/container offset",
         },
     )
-    # Hash and inventory the public subset only; no dispatch identities or answer keys.
-    save_json(
-        public / "manifest.json",
-        {
-            "files": {
-                p.relative_to(public).as_posix(): {
-                    "sha256": sha256_file(p),
-                    "size_bytes": p.stat().st_size,
-                }
-                for p in sorted(public.rglob("*"))
-                if p.is_file()
-            }
-        },
-    )
+    write_public_manifest(public)
     leak_check(public)
     return {
         "public": str(public),

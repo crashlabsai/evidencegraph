@@ -284,6 +284,37 @@ def stage(
     output(construct_stage(out, seed=seed, spoof=spoof, drop=drop or []))
 
 
+@lab_app.command("collect-docker")
+def collect_docker(
+    out: Annotated[
+        Path, typer.Argument(help="New directory for public evidence and private collection truth")
+    ],
+    seed: Annotated[int, typer.Option(help="Scripted scenario seed")] = 7,
+    timeout_seconds: Annotated[
+        float, typer.Option(help="Whole-run deadline in seconds, followed by bounded cleanup")
+    ] = 120,
+    docker_binary: Annotated[
+        str, typer.Option(help="Docker executable, injectable for testing")
+    ] = "docker",
+):
+    """Collect a real background-process incident on a Linux Docker host or Docker Desktop."""
+    from evidencegraph.lab.docker import collect_docker as collect
+
+    try:
+        report = collect(
+            out, seed=seed, timeout_seconds=timeout_seconds, docker_binary=docker_binary
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    output(report)
+    if report["status"] != "ok":
+        for failure in report["failures"]:
+            typer.echo(f"{failure['step']}: {failure['error']}", err=True)
+        for command in report["cleanup_commands"]:
+            typer.echo(command, err=True)
+        raise typer.Exit(1)
+
+
 @lab_app.command("import-mac")
 def import_mac(
     collection: Annotated[

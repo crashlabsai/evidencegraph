@@ -1,14 +1,13 @@
 """Case locks and provenance for atomic graph generations, adapted from Crossledger."""
 
 import importlib
-import json
 import os
-import tempfile
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 
+from evidencegraph.lab.runtime.runtime_io import atomic_json as atomic_json
 from evidencegraph.provenance import analyzer_build_id
 from evidencegraph.schema import SCHEMA_VERSION
 from evidencegraph.strict_json import load_strict_json
@@ -62,20 +61,6 @@ def _unlock_descriptor(descriptor: int) -> None:
     else:
         fcntl = importlib.import_module("fcntl")
         fcntl.flock(descriptor, fcntl.LOCK_UN)
-
-
-def atomic_json(path: Path, value: object) -> None:
-    descriptor, name = tempfile.mkstemp(prefix=".publish-", dir=path.parent)
-    temporary = Path(name)
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            json.dump(value, stream, indent=2, sort_keys=True, allow_nan=False, ensure_ascii=False)
-            stream.write("\n")
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary, path)
-    finally:
-        temporary.unlink(missing_ok=True)
 
 
 def read_manifest(root: Path) -> dict:
