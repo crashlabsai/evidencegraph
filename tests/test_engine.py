@@ -62,7 +62,14 @@ def record(**overrides):
     return entity("record", witness="registry", **overrides)
 
 
-def run(rec, actions, bound: float | None = 1, authentic=frozenset()):
+def run(
+    rec,
+    actions,
+    bound: float | None = 1,
+    authentic=frozenset(),
+    exclusive_receipts=frozenset({"transcript"}),
+):
+    # Existing token-isolation fixtures explicitly exclude complete-receipt copying.
     return reconcile_record(
         rec,
         actions,
@@ -70,6 +77,7 @@ def run(rec, actions, bound: float | None = 1, authentic=frozenset()):
         bound=bound,
         domain="independent",
         authentic=authentic,
+        exclusive_receipts=exclusive_receipts,
     )
 
 
@@ -77,6 +85,19 @@ def test_bound_receipt_is_supported():
     row = run(record(commitment=sha256_text(TOKEN)), [entity("tool", token=TOKEN)])
     assert row.outcome == "supported" and row.candidates == ("tool",)
     assert row.method == "independent_receipt_binding"
+
+
+def test_bearer_receipt_does_not_establish_event_causation_by_default():
+    rec = record(commitment=sha256_text(TOKEN))
+    copied = entity("copy-of-another-events-receipt", token=TOKEN)
+    row = run(rec, [copied], exclusive_receipts=frozenset())
+    assert row.outcome == "ambiguous" and row.method == "receipt_possession_only"
+    assert row.candidates == (copied["entity_id"],)
+    # Neither the commitment nor declaring an unrelated witness exclusive helps.
+    assert run(rec, [copied], exclusive_receipts=frozenset({"other"})).outcome == "ambiguous"
+    # An authentic native recorder is an alternative explicit trust assumption.
+    row = run(rec, [copied], authentic=frozenset({"transcript"}), exclusive_receipts=frozenset())
+    assert row.outcome == "supported" and row.method == "independent_receipt"
 
 
 def test_copied_receipt_without_binding_or_authenticity_stays_ambiguous():

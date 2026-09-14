@@ -71,6 +71,13 @@ def init(
             help="Domain whose records the investigated actors could not fabricate or edit",
         ),
     ] = None,
+    exclusive_receipts: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--exclusive-receipts",
+            help="Domain whose receipt tokens could not be relayed or copied into another tool event; an assumption, not verified by token hashes",
+        ),
+    ] = None,
 ):
     """Create a case directory with its trust, independence and clock declarations."""
     domains = {}
@@ -89,6 +96,10 @@ def init(
         if item not in domains:
             raise typer.BadParameter("authentic records require a declared domain")
         domains[item]["authentic_records"] = True
+    for item in exclusive_receipts or []:
+        if item not in domains:
+            raise typer.BadParameter("exclusive receipts require a declared domain")
+        domains[item]["exclusive_receipt_tokens"] = True
     bounds = []
     for item in clock_bound or []:
         a, b, seconds = item.split(":")

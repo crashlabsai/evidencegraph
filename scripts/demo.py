@@ -29,7 +29,9 @@ def demo(out: Path, seed: int = 1) -> Path:
                     label="Host registry",
                     related_to={"runner": TrustDomainRelation.INDEPENDENT},
                 ),
-                TrustDomain(id="runner", label="Inspect runner"),
+                # This scripted threat model injects invented receipts but never
+                # copies a genuine token. The relay stress case cannot assume this.
+                TrustDomain(id="runner", label="Inspect runner", exclusive_receipt_tokens=True),
             ),
             clock_bounds=(ClockBound(clock_a="runner", clock_b="container", bound_seconds=1),),
         ),

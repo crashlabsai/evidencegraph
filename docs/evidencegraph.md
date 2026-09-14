@@ -68,15 +68,21 @@ A unique matching receipt is not by itself a supported attribution. Every field 
 receipt is public once the ledger is, so a receipt copied from the ledger into a
 forged transcript event matches key, digest, event id and timestamp exactly. The
 engine promotes a unique compatible candidate only when one of two things holds:
-the registry published a `receipt_token_sha256` commitment for the record and the
-transcript receipt carries the matching `receipt_token` that only the caller
-received (`independent_receipt_binding`); or the transcript's trust domain declares
+the registry published a `receipt_token_sha256` commitment, the transcript carries
+the matching `receipt_token`, and its domain explicitly declares
+`exclusive_receipt_tokens` (`independent_receipt_binding`); or the domain declares
 `authentic_records`, meaning its recorder was outside the investigated actors'
 control (`independent_receipt`, and the docket names that assumption). Otherwise the
-match is `ambiguous` (`attribution_unbound`, or `receipt_binding_missing` when a
-commitment exists and the claim carries no token). A token that contradicts the
-commitment is `contradicted`. Neither rule defends against an actor who holds the
-genuine receipt, for example a colluding caller relaying it.
+match is `ambiguous`: `receipt_possession_only` for a matching but transferable token,
+`attribution_unbound` without a commitment, or `receipt_binding_missing` when a
+commitment exists and the claim carries no token. A conflicting token is
+`contradicted`. Exclusivity means a token could not have been relayed into another
+event; it defaults to false. Falsely declaring it on a relayed receipt still causes
+misattribution. See the paired control in [the stress protocol](sprint/protocol.md).
+
+Derived results also retain the analyzer build id. Rendering, validation, further
+derivation and export reject stages from an earlier analyzer. Re-ingesting with the
+current code invalidates the old derived graph before recomputation.
 
 Tool/sandbox consistency remains within the runner trust domain. Each tool call is
 compared with each sandbox execution in its time window separately: same command
@@ -137,8 +143,9 @@ not a performance estimate for any real model or a claim of real-world robustnes
   independent host observations needed to answer launch questions from public evidence.
   A Mac ledger without receipt-token commitments yields no supported attribution
   unless the runner domain is declared `authentic_records`.
-- Defence against an actor who relays a genuine receipt, and against forged runner
-  records in a domain declared authentic; both are outside the binding rule.
+- Establishing whether authenticity or token-exclusivity declarations are true.
+  Forged records in a domain declared authentic, or relays in a domain declared
+  exclusive, violate the assumptions and can cause wrong supported attributions.
 - Provider-enforced cost accounting before a live Scout scan; `--max-usd` alone is
   not a reliable hard cap. The implemented CLI runs the offline control only.
 - Independent review and corrections, and any decision to redistribute the public

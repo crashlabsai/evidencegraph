@@ -43,9 +43,12 @@ class TrustDomain(Frozen):
     related_to: dict[str, TrustDomainRelation] = Field(default_factory=dict)
     # Declares that this domain's records were written by a recorder the investigated
     # actors could not control or edit, so a native event cannot have been fabricated
-    # by them. Without it, a receipt copied from public data into a transcript is
-    # indistinguishable from a genuine one unless the substrate binds receipts.
+    # by them. This is a case assumption, not established by hashes on acquisition.
     authentic_records: bool = False
+    # Receipt tokens remained exclusive to the native tool event receiving them:
+    # no relay, transcript copying, or token disclosure to another event was possible.
+    # A matching bearer token alone establishes possession, not event causation.
+    exclusive_receipt_tokens: bool = False
 
 
 class ClockBound(Frozen):
