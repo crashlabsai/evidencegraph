@@ -48,10 +48,11 @@ no file or network access, results capped at a chosen row limit and downloadable
 as CSV or JSON. The table list shows columns and which question each table serves.
 
 **Case.** The declarations every conclusion is bound to (trust domains,
-independence, authentic records, clock bounds, handle patterns), the pipeline with
-the exact command for each stage not yet run, the stage history with the case.json
-hash each ran under, and the report hashes. A changed declaration is flagged on
-every page until the stages are re-run.
+independence, authentic records, exclusive receipt tokens, clock bounds, handle
+patterns), the pipeline with the exact command for each stage not yet run, the
+stage history with whether each stage still matches the current case.json and
+analyzer build, and the report hashes. A changed declaration or an analyzer upgrade
+is flagged on every page until the stages are re-run.
 
 ## Security posture
 

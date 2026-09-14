@@ -159,7 +159,7 @@ function cell(key, value, ctx) {
   if (typeof value === 'string') {
     if (ENTITY_RE.test(value)) return entityLink(value, ctx);
     if (CITATION_RE.test(value)) return citeChip(value, ctx);
-    if (k === 'outcome' || k === 'status' || k === 'trust_domain_relation' || k === 'configuration') return badge(value, ctx && ctx.meanings);
+    if (k === 'outcome' || k === 'status' || k === 'trust_domain_relation' || k === 'configuration' || k === 'analyzer') return badge(value, ctx && ctx.meanings);
     if (k === 'method') return methodChip(value, ctx);
     if (HASH_RE.test(value)) return hashSpan(value);
     if (WITNESS_RE.test(value)) return witnessLink(value, ctx);
@@ -381,7 +381,7 @@ async function pageDocket(focus) {
         : h('span', { class: 'badge critical' }, text('glyph', '✕'), 'docket.json hash differs from manifest'),
       h('a', { class: 'btn small', href: '/api/reports/DOCKET.md' }, 'DOCKET.md'),
       h('a', { class: 'btn small', href: '/api/reports/docket.json' }, 'docket.json'))));
-  if (data.stale.length) main.append(staleCallout(data.stale));
+  if (isStale(data)) main.append(staleCallout(data.stale, data.stale_analyzer));
 
   const counts = {};
   for (const a of answers) counts[a.outcome] = (counts[a.outcome] || 0) + 1;
@@ -496,11 +496,21 @@ function gapsSection(answers) {
     h('ul', null, [...gaps.entries()].map(([gap, ids]) => h('li', null, gap, ' ', text('dim small', ids.join(', '))))));
 }
 
-function staleCallout(stale) {
-  return callout('critical', 'Case declarations changed after these stages ran',
-    h('p', null, 'Trust and clock declarations are inputs to every conclusion. Re-run ', code('eg ingest'), ' and the derived stages before trusting, rendering or exporting this docket.'),
-    h('p', { class: 'small' }, 'Stale stages: ', h('span', { class: 'chips' }, stale.map(s => h('span', { class: 'chip' }, s)))));
+function staleCallout(stale, staleAnalyzer) {
+  const wrap = h('div');
+  if (stale && stale.length) {
+    wrap.append(callout('critical', 'Case declarations changed after these stages ran',
+      h('p', null, 'Trust and clock declarations are inputs to every conclusion. Re-run ', code('eg ingest'), ' and the derived stages before trusting, rendering or exporting this docket.'),
+      h('p', { class: 'small' }, 'Stale stages: ', h('span', { class: 'chips' }, stale.map(s => h('span', { class: 'chip' }, s))))));
+  }
+  if (staleAnalyzer && staleAnalyzer.length) {
+    wrap.append(callout('critical', 'The analyzer changed after these stages ran',
+      h('p', null, 'An upgraded rule must not present conclusions computed by the old one. Re-run ', code('eg ingest'), ' and the derived stages with the current analyzer before trusting, rendering or exporting this docket.'),
+      h('p', { class: 'small' }, 'Stages from an earlier analyzer: ', h('span', { class: 'chips' }, staleAnalyzer.map(s => h('span', { class: 'chip' }, s))))));
+  }
+  return wrap;
 }
+function isStale(info) { return (info.stale && info.stale.length) || (info.stale_analyzer && info.stale_analyzer.length); }
 
 /* ---------- citation drawer ---------- */
 async function openCitation(id) {
@@ -576,7 +586,8 @@ async function pageWitnesses() {
       const relations = Object.entries(declared.related_to || {});
       main.append(h('p', { class: 'small muted' },
         relations.length ? ['Declared ', relations.map(([other, rel], i) => [i ? '; ' : '', badge(rel), ` of ${other}`])] : 'No trust relation declared with another domain.',
-        declared.authentic_records ? [' · ', badge('supported'), ' declared authentic: its recorder was outside the investigated actors\' control'] : ' · not declared authentic'));
+        declared.authentic_records ? [' · ', badge('supported'), ' declared authentic: its recorder was outside the investigated actors\' control'] : ' · not declared authentic',
+        declared.exclusive_receipt_tokens ? [' · ', badge('supported'), ' exclusive receipt tokens declared'] : ' · receipt tokens not declared exclusive'));
     }
     main.append(h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
       h('thead', null, h('tr', null, ['File', 'Kind', 'Adapter', 'Size', 'Citations', 'SHA-256', 'Acquired', 'Coverage claim', 'Ingested'].map(c => h('th', null, c)))),
@@ -600,7 +611,7 @@ async function pageWitness(id) {
     ? callout('good', 'Snapshot verified', h('p', { class: 'small' }, 'The snapshot still has the size and SHA-256 recorded at acquisition.'))
     : callout('critical', 'Snapshot verification failed', h('p', { class: 'small' }, data.error)));
   main.append(h('div', { class: 'table-wrap' }, h('table', { class: 'data kv' }, h('tbody', null,
-    row('Trust domain', w.trust_domain, data.trust_domain ? text('muted', ` · ${data.trust_domain.label}`) : null, data.trust_domain && data.trust_domain.authentic_records ? [' · ', badge('supported'), ' declared authentic'] : null),
+    row('Trust domain', w.trust_domain, data.trust_domain ? text('muted', ` · ${data.trust_domain.label}`) : null, data.trust_domain && data.trust_domain.authentic_records ? [' · ', badge('supported'), ' declared authentic'] : null, data.trust_domain && data.trust_domain.exclusive_receipt_tokens ? [' · ', badge('supported'), ' exclusive receipt tokens'] : null),
     row('Kind', w.kind), row('Adapter', `${w.adapter} ${w.adapter_version}`),
     row('SHA-256', hashSpan(w.sha256)), row('Size', fmtBytes(w.size_bytes)),
     row('Acquired', mono(w.acquired_at)), row('Origin', mono(w.origin)), row('Snapshot', mono(w.snapshot_path)),
@@ -800,14 +811,17 @@ async function pageCase() {
   main.append(h('header', { class: 'page-head' }, h('div', null, h('h1', null, data.title),
     h('p', { class: 'muted lede' }, 'The declarations every conclusion is bound to, and which stages have run under them.')),
     h('div', { class: 'page-meta' }, h('a', { class: 'btn small', href: '/api/reports/case.json' }, 'case.json'), h('a', { class: 'btn small', href: '/api/reports/manifest.json' }, 'manifest.json'))));
-  if (data.stale.length) main.append(staleCallout(data.stale));
+  if (isStale(data)) main.append(staleCallout(data.stale, data.stale_analyzer));
 
   main.append(h('h2', null, 'Trust domains'));
   main.append(h('div', { class: 'cards' }, config.trust_domains.map(d => h('div', { class: 'card' },
     h('h3', null, d.id, text('muted', ` · ${d.label}`)),
     h('p', { class: 'small' }, d.authentic_records
       ? [badge('supported'), ' Declared authentic: its records were written by a recorder the investigated actors could not control. A unique matching receipt from this domain can be supported without a receipt token.']
-      : [badge('ambiguous'), ' Not declared authentic: a matching receipt from this domain is ambiguous unless the registry binds it with a receipt token.']),
+      : [badge('ambiguous'), ' Not declared authentic: a native event in this domain could have been written or edited by the investigated actors.']),
+    h('p', { class: 'small' }, d.exclusive_receipt_tokens
+      ? [badge('supported'), ' Declared exclusive receipt tokens: a genuine token could not be relayed or copied into another native event, so a matching token can support attribution. A false declaration produces a wrong attribution; hashes cannot verify it.']
+      : [badge('ambiguous'), ' Receipt tokens not declared exclusive: a matching token shows possession only and the attribution stays ambiguous (receipt_possession_only).']),
     h('p', { class: 'small' }, Object.keys(d.related_to || {}).length
       ? Object.entries(d.related_to).map(([other, rel], i) => [i ? '; ' : '', badge(rel), ` of ${other}`])
       : text('muted', 'No relation declared with another domain; cross-domain matches cannot become supported.')),
@@ -826,6 +840,7 @@ async function pageCase() {
     family_confidence: config.family_confidence,
     schema_version: config.schema_version,
     'case.json sha256': data.config_sha256,
+    'current analyzer build': data.analyzer_build_id,
   }, {}));
 
   main.append(h('h2', null, 'Pipeline'), h('p', { class: 'small muted' }, 'Each stage records the case.json hash it ran under; a changed declaration makes every earlier stage stale.'));
@@ -837,8 +852,9 @@ async function pageCase() {
     main.append(h('h2', null, 'Stage history'), genericTable(stages.map(([name, s]) => ({
       stage: name, completed_at: s.completed_at, analyzer_build: s.analyzer_build_id,
       configuration: data.stale.includes(name) ? 'differs' : 'exact',
+      analyzer: data.stale_analyzer.includes(name) ? 'differs' : 'exact',
       parameters: Object.fromEntries(Object.entries(s.parameters || {}).filter(([k]) => k !== 'case_config_sha256')),
-    })), { meanings: { exact: 'Ran under the current case.json', differs: 'Ran under an earlier case.json; re-run it' } }));
+    })), { meanings: { exact: 'Matches the current case.json and analyzer build', differs: 'Ran under an earlier case.json or analyzer build; re-run it' } }));
   }
   main.append(h('h2', null, 'Reports'));
   const reports = Object.entries(data.reports);
@@ -871,7 +887,7 @@ async function loadCase() {
     if (info.bundle) flags.append(h('span', { class: 'chip', title: 'Serving the data/ directory of an exported BagIt bundle' }, 'bundle'));
     flags.append(h('span', { class: 'chip', title: 'The viewer never mutates the case' }, 'read-only'));
     const banner = $('#stale-banner');
-    if (info.stale.length) { clear(banner).append(staleCallout(info.stale)); banner.hidden = false; } else banner.hidden = true;
+    if (isStale(info)) { clear(banner).append(staleCallout(info.stale, info.stale_analyzer)); banner.hidden = false; } else banner.hidden = true;
   } catch (error) {
     $('#case-title').textContent = 'Case unavailable';
     $('#case-root').textContent = error.message;

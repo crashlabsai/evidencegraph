@@ -57,6 +57,8 @@ def test_shell_static_files_and_case_summary(viewer):
     assert status == 200
     assert summary["title"] == "Synthetic wiki" and summary["bundle"] is False
     assert summary["stale"] == [] and summary["witness_count"] == 5
+    assert summary["stale_analyzer"] == [] and summary["analyzer_build_id"].startswith("0.1.0+")
+    assert all("exclusive_receipt_tokens" in d for d in summary["config"]["trust_domains"])
     steps = {step["step"]: step for step in summary["pipeline"]}
     assert steps["ingest"]["done"] and not steps["docket"]["done"]
     assert steps["docket"]["command"].startswith("eg docket ")
@@ -180,6 +182,16 @@ def test_changed_declarations_are_reported_as_stale(viewer, wiki_case):
     stages = read_manifest(wiki_case)["stages"]
     assert "witness.add" in stages and "witness.add" not in summary["stale"]
     assert summary["stale"] == sorted(name for name in stages if name.startswith("ingest."))
+
+
+def test_analyzer_upgrade_is_reported_as_stale(viewer, wiki_case):
+    path = wiki_case / "manifest.json"
+    manifest = json.loads(path.read_text())
+    stage = next(name for name in manifest["stages"] if name.startswith("ingest."))
+    manifest["stages"][stage]["analyzer_build_id"] = "0.0.0+source.earlier"
+    path.write_text(json.dumps(manifest))
+    status, summary = call(viewer + "/api/case")
+    assert status == 200 and summary["stale"] == [] and summary["stale_analyzer"] == [stage]
 
 
 def test_exported_bundle_is_served_read_only(wiki_case, tmp_path):

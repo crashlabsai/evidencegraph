@@ -26,11 +26,11 @@ from urllib.parse import parse_qs, unquote, urlsplit
 import duckdb
 
 from evidencegraph.case import configuration
-from evidencegraph.derive import configuration_sha256, stale_stages
+from evidencegraph.derive import configuration_sha256, stale_analyzer_stages, stale_stages
 from evidencegraph.docket.questions import COLUMN_QUESTIONS, ENTITY_QUESTIONS, QUESTIONS
 from evidencegraph.docket.render import LABELS, relevant_questions
 from evidencegraph.manifest import read_manifest
-from evidencegraph.provenance import sha256_file, verify_file_identity
+from evidencegraph.provenance import analyzer_build_id, sha256_file, verify_file_identity
 from evidencegraph.refs import resolve_citation
 from evidencegraph.schema import TABLE_MODELS, Citation, Witness
 from evidencegraph.store import JSON_COLUMNS, Store, read_only_query, safe_path
@@ -71,15 +71,21 @@ OUTCOME_MEANINGS = {
 }
 METHOD_HINTS = {
     "independent_receipt_binding": (
-        "Supported because the transcript receipt carries the token whose hash the "
-        "registry published for this record; a genuine receipt could still be relayed"
+        "Supported because the transcript receipt carries the token the registry committed "
+        "to, under the declared assumption that tokens in this domain could not be relayed "
+        "or copied into another tool event (exclusive_receipt_tokens)"
+    ),
+    "receipt_possession_only": (
+        "The token matches, but a copy of the complete receipt would match identically; "
+        "establish recorder authenticity or token exclusivity, another matching hash is "
+        "insufficient"
     ),
     "independent_receipt": (
         "Supported under the declared assumption that the transcript domain's records "
         "cannot be fabricated by the investigated actors (authentic_records)"
     ),
     "attribution_unbound": (
-        "Add receipt tokens to the registry, or declare the runner authentic if it is"
+        "Obtain authentic recorder evidence, or tokens whose exclusivity can be justified"
     ),
     "receipt_binding_missing": (
         "The claim lacks the token the registry issued; nothing public resolves it"
@@ -333,6 +339,8 @@ class CaseView:
             "config": config.model_dump(mode="json"),
             "config_sha256": configuration_sha256(self.root),
             "stale": stale_stages(self.root, manifest),
+            "stale_analyzer": stale_analyzer_stages(manifest),
+            "analyzer_build_id": analyzer_build_id(),
             "stages": stages,
             "pipeline": pipeline,
             "optional": optional,
@@ -370,6 +378,7 @@ class CaseView:
             "verified": sha256_file(path) == report["sha256"],
             "rendered_at": manifest.get("stages", {}).get("docket", {}).get("completed_at"),
             "stale": stale_stages(self.root, manifest),
+            "stale_analyzer": stale_analyzer_stages(manifest),
             "relevant": relevant_questions(docket),
             "questions": {
                 question: {"label": LABELS[question], "text": text}
