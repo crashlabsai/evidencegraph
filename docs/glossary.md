@@ -47,7 +47,13 @@ field is public once the ledger is published.
 
 **Receipt token.** A secret the registry returns only to the caller, whose hash it
 publishes in the ledger as `receipt_token_sha256`. A transcript receipt carrying the
-matching token is bound to the record; a copied receipt cannot carry it.
+matching token demonstrates possession. A complete receipt copied from another
+transcript carries the same token and cannot be distinguished by its hash.
+
+**Exclusive receipt tokens.** A per-domain declaration that a genuine token could
+not be relayed or copied into another native event. Matching tokens support event
+attribution only with this declaration or an authentic recorder. It is an assumption
+about collection and information access, not a property established by a hash.
 
 **Population declaration.** The registry's completeness claim: the exact set of
 record ids it accepted during a stated window. Absence is evidence only against a

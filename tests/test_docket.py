@@ -94,6 +94,9 @@ def test_lq1_status_follows_attribution_evidence():
     lq1 = answers(FakeStore([supported], registry_mutation=[record]))["LQ1"]
     assert lq1.outcome == Outcome.SUPPORTED
     assert any("declared assumption" in a for a in lq1.assumptions)
+    supported["method"] = "independent_receipt_binding"
+    lq1 = answers(FakeStore([supported], registry_mutation=[record]))["LQ1"]
+    assert any("could not be relayed" in a for a in lq1.assumptions)
 
 
 def test_lq8_reports_only_observed_parts():

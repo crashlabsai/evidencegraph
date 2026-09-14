@@ -80,13 +80,25 @@ also scores the answers against the stage's private truth.
   docket carries.
 - **`--authentic-records runner`** declares that the runner's logs were written by a
   recorder the agents could not edit. Only declare it when that is true of your
-  harness. Without it, and without receipt tokens (below), a matching write claim is
-  `ambiguous`, because every field of a receipt is public once the ledger is and a
-  forged transcript event could copy it.
+  harness. Hashing a transcript after acquisition does not establish this.
+- **`--exclusive-receipts runner`** declares that receipt tokens could not be relayed
+  or copied into another native tool event. A matching token permits attribution
+  only under this declaration or authentic records. It is false when actors can
+  copy complete receipts from shared transcripts. Leave it unset when unknown.
+  The scripted demo sets it explicitly because its invented receipts contain no
+  copied tokens; the receipt-relay stress case leaves it unset.
+
+The generic recipe deliberately makes neither authenticity nor exclusivity claims.
+Matching tokens therefore produce `ambiguous` / `receipt_possession_only`. This is
+the expected result until the collection system justifies a stronger assumption.
 
 If you change any declaration later, `eg ingest` re-parses under the new
 `case.json`, and every derived stage must be re-run. Rendering or exporting with a
 stale stage is refused rather than silently mixing assumptions.
+Analyzer upgrades likewise require re-ingestion and re-running derived stages, so
+old attributions cannot be rendered as if the current rule produced them. Existing
+bundles can still be hash-verified without `--recompute`; recomputation requires the
+recorded analyzer build.
 
 ## Input contracts
 
@@ -98,7 +110,7 @@ Any Inspect `.eval` file. What the rules look at:
   arguments contain a string `name` and string `payload`, and whose result parses as a
   JSON receipt with `accepted: true`, the same `name`, a string `namespace`, a string
   `event_id`, and `sha256` equal to the SHA-256 of the payload. Optional
-  `receipt_token` binds the claim to the ledger (see below). Errored, pending or
+  `receipt_token` can match the ledger commitment (see below). Errored, pending or
   truncated events are never claims.
 - **Launch claims.** A `start_job` tool whose result has `started: true` and a
   `job_id`, with `arguments.version` naming the script digest. These produce
@@ -132,10 +144,10 @@ Rules that depend on these fields:
   whole tool call widened by the clock bound on both sides. Keep collecting for at
   least the bound before and after the incident.
 - `receipt_token_sha256` is the registry's commitment to a token it returned only to
-  the caller. A transcript receipt carrying the matching `receipt_token` is bound to
-  the record; one carrying a different token is contradicted; one carrying none is
-  ambiguous. This is what separates a genuine receipt from a copied one without
-  assuming the transcript is authentic.
+  the caller. A matching `receipt_token` demonstrates possession, not which event
+  performed the write: the complete receipt could have been copied. Attribution
+  needs one of the explicit declarations above. A different token conflicts with
+  the commitment; a missing token leaves the claim unbound.
 - A refresh entry's `payload_sha256` commits to what the cache serves afterwards, so
   later reads can be matched to it from public evidence.
 
@@ -166,7 +178,8 @@ of the underlying relations:
 |---|---|
 | `clock_bound_missing` | Declare or measure a `runner:container` bound |
 | `trust_not_independent` | Declare the two domains independent, if that is true |
-| `attribution_unbound` | Add receipt tokens to the registry, or declare the runner authentic if it is |
+| `attribution_unbound` | Obtain authentic recorder evidence, or tokens whose exclusivity can be justified |
+| `receipt_possession_only` | Establish recorder authenticity or token exclusivity; another matching hash is insufficient |
 | `receipt_binding_missing` | The claim lacks the token the registry issued; nothing public resolves it |
 | `unseparated_candidates` | Two claims match equally; only more evidence separates them |
 | `key_and_version` | No claim matches; the writer's transcript may be missing |

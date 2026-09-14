@@ -1,0 +1,12 @@
+{
+  "baseline_commit": "efbd4192767672e2ca3634c9ebe9d9a3c98fcddd",
+  "results_path": "cases/incident-response/results.json",
+  "results_sha256": "a2b94ba6249256adb72a44c48ad1b9b75a86fda2abc8a7bc70219409f2bd9c2a",
+  "official_template_url": "https://docs.google.com/document/d/1PQBlhI3tM5vb51x7jBWXBQMYg6hkiU_x8RaCws4kjl4/copy?usp=sharing",
+  "official_template_docx_sha256": "ba9ac4c65d28c0afad9198ddf07386a95b8150aecc835b72fa3bdcb8b460ada7",
+  "official_template_text_sha256": "5bf50c514cb09a0f7b8a85199c50e4e85d88463ca55dcc14ca3fda123f05cf1d",
+  "accessed_utc": "2026-09-14",
+  "prior_probe": "relay-before.json",
+  "prior_probe_note": "Executed on baseline before edits; no repeated trials or population accuracy claim. Synthetic source retained in .context/relay-probe and will be included in the local evidence archive.",
+  "new_work": "Explicit token-exclusivity gate, analyzer-upgrade invalidation, paired stress pack and its results; all earlier EvidenceGraph and vendored Crossledger functionality is prior work."
+}

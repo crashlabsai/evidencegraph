@@ -1,5 +1,15 @@
 # Evidencegraph critical review — 2026-09-11
 
+**Follow-up, 2026-09-14:** the earlier fix below stopped copies of public ledger
+fields, but a new native-log probe copied the complete receipt, including its token,
+from A into B and withheld A. The previous rule supported ten attributions with one
+wrong event. Matching tokens now default to `ambiguous` / `receipt_possession_only`;
+support requires explicit recorder authenticity or token exclusivity. An intentionally
+false exclusivity declaration still reproduces the error. The
+[stress protocol](sprint/protocol.md) and [work pack](sprint/README.md) record the
+reproduction and the loss of correct attribution when exclusivity is unknown.
+The historical review below describes the earlier revisions, not the current rule.
+
 **Assessment: a promising evidence-audit workbench, with demonstrated correctness gaps and unproven investigator utility.** Keep developing its ability to preserve, compare, and explain evidence. Do not yet rely on its supported attribution or contradiction labels for an adversarial incident without reviewing the underlying observations.
 
 This review covers the repository at `ded5e94`: the handoff, both dockets, architecture, acquisition, adapters, graph/storage lifecycle, reconciliation, identity/lineage, coverage, validation, Scout integration, CLI, export, and relevant tests. Three independent AI reviewers challenged forensic correctness, evaluation design, and product usefulness; these were not human investigator interviews. Their findings were consolidated with direct source inspection and new targeted probes.

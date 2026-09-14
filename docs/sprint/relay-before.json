@@ -1,0 +1,50 @@
+{
+  "produced": {
+    "precision": 0.9,
+    "recall": 1.0,
+    "recall_over_all_records": 0.75,
+    "supported": 10,
+    "correct": 9,
+    "confident_errors": 1,
+    "abstention_rate": 0.16666666666666666,
+    "population": 12,
+    "identifiable_with_captured_transcripts": 9
+  },
+  "spoofed": {
+    "captured": 1,
+    "contradicted": 0,
+    "missed": 1,
+    "false_positives": 0
+  },
+  "coverage": {
+    "true_captured_fraction": 0.75,
+    "interval_brackets_truth": null,
+    "limitation": "Conditional check on this staged finite population; not a calibrated confidence guarantee for real missing evidence"
+  },
+  "errors": [
+    {
+      "record": "event-000001",
+      "predicted": "75U5noByUTTRstjk4e3APj",
+      "expected": "KjN6sX4wygaNevAEmkoAj5"
+    }
+  ],
+  "unscored": {
+    "launched": "No independently observed background job in in-process stages",
+    "refresh_ordering": "The in-process stage shares one clock, so LQ7 ordering is not independently scored"
+  },
+  "built_on": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "confident_errors": 0
+  },
+  "read": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "confident_errors": 0
+  },
+  "fixture_exposure": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "confident_errors": 0
+  }
+}

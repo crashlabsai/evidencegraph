@@ -6,7 +6,7 @@ from pathlib import Path
 from evidencegraph.case import configuration
 from evidencegraph.ids import relation_id
 from evidencegraph.manifest import update_manifest_stage
-from evidencegraph.provenance import sha256_file
+from evidencegraph.provenance import analyzer_build_id, sha256_file
 from evidencegraph.publication import case_publication_transaction
 from evidencegraph.schema import CaseConfig, Outcome, Relation, RelationKind, TrustDomainRelation
 from evidencegraph.store import PartitionWriter, Store, validate_graph
@@ -35,11 +35,31 @@ def require_current_configuration(root: Path, manifest: dict) -> str:
             + ", ".join(stale)
             + "; re-run ingest and the derived stages before rendering, validating or exporting"
         )
+    # An upgraded rule must not silently render an attribution made by the old rule.
+    stale_builds = sorted(
+        name
+        for name, stage in manifest.get("stages", {}).items()
+        if (name.startswith("ingest.") or "case_config_sha256" in stage.get("parameters", {}))
+        and stage.get("analyzer_build_id") != analyzer_build_id()
+    )
+    if stale_builds:
+        raise ValueError(
+            "analyzer changed since "
+            + ", ".join(stale_builds)
+            + "; re-run ingest and the derived stages with the current analyzer"
+        )
     return current
 
 
 def authentic_witnesses(config: CaseConfig, manifest: dict) -> frozenset[str]:
     declared = {d.id for d in config.trust_domains if d.authentic_records}
+    return frozenset(
+        w for w, meta in manifest["witnesses"].items() if meta["trust_domain"] in declared
+    )
+
+
+def exclusive_receipt_witnesses(config: CaseConfig, manifest: dict) -> frozenset[str]:
+    declared = {d.id for d in config.trust_domains if d.exclusive_receipt_tokens}
     return frozenset(
         w for w, meta in manifest["witnesses"].items() if meta["trust_domain"] in declared
     )
