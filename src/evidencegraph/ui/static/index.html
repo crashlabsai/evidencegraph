@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evidencegraph</title>
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="app">
+  <nav class="sidebar" aria-label="Sections">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">eg</span>
+      <span class="brand-name">Evidencegraph</span>
+    </div>
+    <ul class="nav">
+      <li><a href="#/docket" data-route="docket">Docket</a></li>
+      <li><a href="#/witnesses" data-route="witnesses">Witnesses</a></li>
+      <li><a href="#/relations" data-route="relations">Relations</a></li>
+      <li><a href="#/entities" data-route="entities">Entities</a></li>
+      <li><a href="#/query" data-route="query">Query</a></li>
+      <li><a href="#/case" data-route="case">Case</a></li>
+    </ul>
+    <div class="sidebar-foot">
+      <button type="button" id="theme-toggle" class="btn small">Theme: auto</button>
+      <p class="muted tiny">Read-only viewer. Every conclusion cites immutable source bytes; supported never means intent or identity.</p>
+    </div>
+  </nav>
+  <div class="content">
+    <header class="topbar">
+      <div class="case-head">
+        <span id="case-title" class="case-title">Loading case…</span>
+        <span id="case-root" class="case-root mono"></span>
+        <span id="case-flags" class="case-flags"></span>
+      </div>
+    </header>
+    <div id="stale-banner" hidden></div>
+    <main id="main" tabindex="-1"></main>
+  </div>
+</div>
+<div id="backdrop" class="backdrop" hidden></div>
+<aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
+  <div class="drawer-head">
+    <h2 id="drawer-title">Citation</h2>
+    <button type="button" id="drawer-close" class="btn small" aria-label="Close">Close</button>
+  </div>
+  <div id="drawer-body" class="drawer-body"></div>
+</aside>
+<noscript><p class="callout critical">The viewer needs JavaScript. The same data is available at /api/docket and in DOCKET.md.</p></noscript>
+<script src="/static/app.js"></script>
+</body>
+</html>

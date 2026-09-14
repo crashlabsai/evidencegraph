@@ -16,6 +16,17 @@ def configuration_sha256(root: Path) -> str:
     return sha256_file(root / "case.json")
 
 
+def stale_stages(root: Path, manifest: dict) -> list[str]:
+    """Stages whose recorded case.json hash differs from the current declarations."""
+    current = configuration_sha256(root)
+    return sorted(
+        name
+        for name, stage in manifest.get("stages", {}).items()
+        if (name.startswith("ingest.") or "case_config_sha256" in stage.get("parameters", {}))
+        and stage.get("parameters", {}).get("case_config_sha256") != current
+    )
+
+
 def require_current_configuration(root: Path, manifest: dict) -> str:
     """Every ingested and derived stage must have been computed under the current case.json.
 
@@ -23,12 +34,7 @@ def require_current_configuration(root: Path, manifest: dict) -> str:
     computed under different assumptions is stale, not merely old.
     """
     current = configuration_sha256(root)
-    stale = sorted(
-        name
-        for name, stage in manifest.get("stages", {}).items()
-        if (name.startswith("ingest.") or "case_config_sha256" in stage.get("parameters", {}))
-        and stage.get("parameters", {}).get("case_config_sha256") != current
-    )
+    stale = stale_stages(root, manifest)
     if stale:
         raise ValueError(
             "case configuration changed since "

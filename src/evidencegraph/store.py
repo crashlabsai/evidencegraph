@@ -181,6 +181,36 @@ class Store:
         self.close()
 
 
+def single_select(connection: duckdb.DuckDBPyConnection, sql: str) -> bool:
+    statements = connection.extract_statements(sql)
+    return len(statements) == 1 and str(statements[0].type) == "StatementType.SELECT"
+
+
+def restrict_to_case(store: Store, root: Path, manifest: dict) -> None:
+    """Keep lazy Parquet scans readable while preventing arbitrary file/network IO."""
+    paths = [
+        str(safe_path(root, entry["path"]).absolute())
+        for partition in manifest["partitions"].values()
+        for entry in partition.values()
+    ]
+    store.connection.execute("SET allowed_paths = ?", [paths])
+    store.connection.execute("SET enable_external_access=false")
+
+
+def read_only_query(root: Path, manifest: dict, sql: str, *, limit: int | None = None) -> dict:
+    """Run one SELECT over the published graph; rows beyond `limit` are reported, not returned."""
+    with Store(root, manifest) as store:
+        if not single_select(store.connection, sql):
+            raise ValueError("query accepts a single read-only SELECT")
+        restrict_to_case(store, root, manifest)
+        cursor = store.connection.execute(sql)
+        columns = [c[0] for c in cursor.description or []]
+        raw = cursor.fetchmany(limit + 1) if limit is not None else cursor.fetchall()
+        truncated = limit is not None and len(raw) > limit
+        rows = [dict(zip(columns, row, strict=True)) for row in raw[:limit]]
+    return {"columns": columns, "rows": rows, "truncated": truncated}
+
+
 def validate_graph(store: Store) -> None:
     for table, key in [
         ("entities", "entity_id"),

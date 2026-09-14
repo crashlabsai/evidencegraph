@@ -14,6 +14,10 @@
 - Onboarding docs for outside users: getting-started recipe with input contracts,
   the sixteen questions explained, a glossary, and help text on every CLI command;
   the documented recipe runs as a test
+- `eg serve`: a local read-only web viewer over a case or exported bundle, with the
+  docket and its per-record evidence, citation resolution with hash re-verification,
+  witness inventory, entity and relation browsing, a read-only SQL console and
+  pipeline status; standard library only, no build step
 
 ## eg-prototype-v0.1 — 2026-09-11
 

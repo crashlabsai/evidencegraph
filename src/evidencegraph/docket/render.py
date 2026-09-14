@@ -15,9 +15,37 @@ from evidencegraph.provenance import sha256_file
 from evidencegraph.publication import case_publication_transaction
 from evidencegraph.store import PartitionWriter, Store
 
+LABELS = {
+    "DQ1": "Activity",
+    "DQ2": "Authorship",
+    "DQ3": "Substrates",
+    "DQ4": "Fact audit",
+    "DQ5": "Identity",
+    "DQ6": "Lineage",
+    "DQ7": "Retention",
+    "DQ8": "Limits",
+    "LQ1": "Write attribution",
+    "LQ2": "Job launch",
+    "LQ3": "Background output",
+    "LQ4": "Versions",
+    "LQ5": "Integrity",
+    "LQ6": "Coverage",
+    "LQ7": "Refresh timing",
+    "LQ8": "Fixture access",
+}
+
 
 def escape(value: object) -> str:
     return str(value).replace("|", "\\|").replace("\n", " ")
+
+
+def relevant_questions(docket: dict) -> list[str]:
+    """The question set the ingested evidence can speak to: DQ for wiki revisions, LQ for
+    registry records; both when both were ingested."""
+    relevant = {"DQ" if any(c["subkind"] == "revision" for c in docket["entity_counts"]) else "LQ"}
+    if any(c["subkind"] == "registry_mutation" for c in docket["entity_counts"]):
+        relevant.add("LQ")
+    return [a["question_id"] for a in docket["answers"] if a["question_id"][:2] in relevant]
 
 
 def compute_docket(root: Path, manifest: dict) -> dict:
@@ -48,29 +76,9 @@ def compute_docket(root: Path, manifest: dict) -> dict:
 
 
 def markdown(docket: dict) -> str:
-    relevant = {"DQ" if any(c["subkind"] == "revision" for c in docket["entity_counts"]) else "LQ"}
-    if any(c["subkind"] == "registry_mutation" for c in docket["entity_counts"]):
-        relevant.add("LQ")
-    rows = [a for a in docket["answers"] if a["question_id"][:2] in relevant]
+    relevant = set(relevant_questions(docket))
+    rows = [a for a in docket["answers"] if a["question_id"] in relevant]
     by_id = {a["question_id"]: a for a in rows}
-    labels = {
-        "DQ1": "Activity",
-        "DQ2": "Authorship",
-        "DQ3": "Substrates",
-        "DQ4": "Fact audit",
-        "DQ5": "Identity",
-        "DQ6": "Lineage",
-        "DQ7": "Retention",
-        "DQ8": "Limits",
-        "LQ1": "Write attribution",
-        "LQ2": "Job launch",
-        "LQ3": "Background output",
-        "LQ4": "Versions",
-        "LQ5": "Integrity",
-        "LQ6": "Coverage",
-        "LQ7": "Refresh timing",
-        "LQ8": "Fixture access",
-    }
     lines = [
         f"# {escape(docket['title'])}",
         "",
@@ -80,7 +88,7 @@ def markdown(docket: dict) -> str:
         "|---|---|---|",
     ]
     lines += [
-        f"| {a['question_id']} {labels[a['question_id']]} | {a['outcome']} | {escape(a['headline'])} |"
+        f"| {a['question_id']} {LABELS[a['question_id']]} | {a['outcome']} | {escape(a['headline'])} |"
         for a in rows
     ]
     coverage = by_id.get("LQ6", {}).get("numbers", {}).get("coverage", [])

@@ -9,7 +9,7 @@ import typer
 from evidencegraph import case as lifecycle
 from evidencegraph.manifest import read_manifest
 from evidencegraph.schema import CaseConfig, ClockBound, TrustDomain
-from evidencegraph.store import Store
+from evidencegraph.store import Store, read_only_query
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -155,19 +155,11 @@ def query(
     ],
 ):
     """Run a read-only SQL query against the graph (DuckDB)."""
-    with Store(case, read_manifest(case)) as store:
-        statements = store.connection.extract_statements(sql)
-        if len(statements) != 1 or str(statements[0].type) != "StatementType.SELECT":
-            raise typer.BadParameter("query accepts a single read-only SELECT")
-        # Keep lazy Parquet scans readable while preventing arbitrary file/network IO.
-        paths = [
-            str((case / entry["path"]).absolute())
-            for partition in read_manifest(case)["partitions"].values()
-            for entry in partition.values()
-        ]
-        store.connection.execute("SET allowed_paths = ?", [paths])
-        store.connection.execute("SET enable_external_access=false")
-        output(store.query(sql))
+    try:
+        result = read_only_query(case, read_manifest(case), sql)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    output(result["rows"])
 
 
 @app.command()
@@ -357,6 +349,43 @@ def scan(
     from evidencegraph.scanners.validation import run_scan
 
     output(run_scan(case, scanner=scanner, validation=validation, model=model, max_usd=max_usd))
+
+
+@app.command()
+def serve(
+    case: Annotated[
+        Path, typer.Argument(help="Case directory, or a bundle directory from `export`")
+    ],
+    host: Annotated[
+        str, typer.Option(help="Interface to bind; keep the loopback default unless sharing")
+    ] = "127.0.0.1",
+    port: Annotated[int, typer.Option(help="TCP port; 0 picks a free port")] = 8765,
+    open_browser: Annotated[
+        bool, typer.Option("--open/--no-open", help="Open the viewer in a browser")
+    ] = False,
+    allowed_host: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--allowed-host",
+            help="Extra Host header value to accept, needed only when binding a non-local interface",
+        ),
+    ] = None,
+    verbose: Annotated[bool, typer.Option(help="Log each request")] = False,
+):
+    """Browse a case or bundle read-only in a local web viewer: docket, citations, witnesses, graph and SQL."""
+    from evidencegraph.ui.server import serve as run_viewer
+
+    try:
+        run_viewer(
+            case,
+            host,
+            port,
+            open_browser=open_browser,
+            allowed_hosts=allowed_host or (),
+            verbose=verbose,
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
 
 
 @app.command("scout-db")
