@@ -34,28 +34,32 @@ The drawer lists the entities built on the fragment, links to the relations that
 cite it, and prints the exact `eg cite` command to reproduce the lookup.
 
 **Witnesses.** Every acquired file grouped by trust domain, with the declared
-relations between domains, whether a domain is declared authentic, each file's
-hash, size, adapter, coverage claim and ingestion state. A witness page re-verifies
-the snapshot and breaks its entities down by subkind.
+relations between domains, each file's hash, size, adapter, coverage claim and
+ingestion state. Source files come first; content-addressed artifacts are folded
+behind a count. One button re-verifies every snapshot against its recorded size and
+SHA-256 and marks each row. A witness page does the same for one file and breaks
+its entities down by subkind.
 
-**Relations.** The cited edges of the graph, filterable by kind, outcome, method
-and run. Hovering a method shows what would change an unresolved outcome, using the
-same table as [getting-started.md](getting-started.md#reading-the-docket).
+**Relations.** The cited edges of the graph, unresolved ones first, filterable by
+kind, outcome, method and run. Unresolved rows state what would change their
+outcome, using the same table as
+[getting-started.md](getting-started.md#reading-the-docket).
 
 **Entities.** Witness-local observations, filterable by subkind, kind and witness,
-with a text search over keys and attributes. An entity page shows its attributes,
-time claims, citation, and every relation in which it is subject or object.
+with a text search over keys and attributes. An entity page leads with every
+relation in which the entity is subject or object, then its attributes, time claims
+and citation.
 
 **Query.** A SQL console with the same rules as `eg query`: one read-only SELECT,
 no file or network access, results capped at a chosen row limit and downloadable
 as CSV or JSON. The table list shows columns and which question each table serves.
 
-**Case.** The declarations every conclusion is bound to (trust domains,
-independence, authentic records, exclusive receipt tokens, clock bounds, handle
-patterns), the pipeline with the exact command for each stage not yet run, the
-stage history with whether each stage still matches the current case.json and
-analyzer build, and the report hashes. A changed declaration or an analyzer upgrade
-is flagged on every page until the stages are re-run.
+**Case.** The pipeline first, with the next command to run ready to copy, then
+the declarations every conclusion is bound to (trust domains with what each holds,
+independence, authentic records, exclusive receipt tokens, clock bounds), the stage
+history with whether each stage still matches the current case.json and analyzer
+build, and the report hashes. A changed declaration or an analyzer upgrade is
+flagged on every page until the stages are re-run.
 
 ## Security posture
 

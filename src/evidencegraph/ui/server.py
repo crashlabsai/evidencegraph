@@ -225,6 +225,10 @@ def page(params: dict[str, str]) -> tuple[int, int]:
     return max(1, min(limit, PAGE_LIMIT)), max(0, offset)
 
 
+OUTCOME_ORDER = (
+    "CASE r.outcome WHEN 'contradicted' THEN 0 WHEN 'ambiguous' THEN 1 WHEN 'unmatched' THEN 2 "
+    "WHEN 'not_assessable' THEN 3 ELSE 4 END"
+)
 RELATION_SELECT = (
     "SELECT r.*, a.subkind AS subject_subkind, a.natural_key AS subject_key, "
     "b.subkind AS object_subkind, b.natural_key AS object_key FROM relations r "
@@ -532,7 +536,7 @@ class CaseView:
             rows = store.query(
                 RELATION_SELECT
                 + clause
-                + " ORDER BY r.kind, r.outcome, r.subject_id, r.relation_id LIMIT ? OFFSET ?",
+                + f" ORDER BY {OUTCOME_ORDER}, r.kind, r.subject_id, r.relation_id LIMIT ? OFFSET ?",
                 [*args, limit, offset],
             )
             facets = {
@@ -619,11 +623,13 @@ class CaseView:
                 [entity_id],
             )
             outgoing = store.query(
-                RELATION_SELECT + " WHERE r.subject_id=? ORDER BY r.kind, r.outcome, r.relation_id",
+                RELATION_SELECT
+                + f" WHERE r.subject_id=? ORDER BY {OUTCOME_ORDER}, r.kind, r.relation_id",
                 [entity_id],
             )
             incoming = store.query(
-                RELATION_SELECT + " WHERE r.object_id=? ORDER BY r.kind, r.outcome, r.relation_id",
+                RELATION_SELECT
+                + f" WHERE r.object_id=? ORDER BY {OUTCOME_ORDER}, r.kind, r.relation_id",
                 [entity_id],
             )
             linked = {c for row in outgoing + incoming for c in row["candidates"]}

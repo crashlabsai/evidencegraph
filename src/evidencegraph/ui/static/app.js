@@ -7,6 +7,7 @@ const CITATION_RE = /^ref-[0-9a-f]{16,}$/;
 const RELATION_RE = /^r-[0-9a-f]{16,}$/;
 const WITNESS_RE = /^w-[0-9a-f]{12,}$/;
 const HASH_RE = /^[0-9a-f]{64}$/;
+const HASHNAME_RE = /^([0-9a-f]{64})(\.[A-Za-z0-9]+)?$/;
 const TIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 
 const OUTCOMES = {
@@ -72,6 +73,7 @@ function titleCase(key) {
   return String(key).replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());
 }
 function shortId(id) { return id.length > 14 ? id.slice(0, 14) + '…' : id; }
+function shortName(name) { const m = HASHNAME_RE.exec(name); return m ? m[1].slice(0, 16) + '…' + (m[2] || '') : name; }
 function fmtInt(n) { return Number(n).toLocaleString('en-US'); }
 function fmtNum(value, key) {
   if (Number.isInteger(value)) return fmtInt(value);
@@ -366,7 +368,9 @@ async function pageDocket(focus) {
   let data;
   try { data = await api('/api/docket'); } catch (error) {
     if (error.status === 404) {
-      clear(main).append(emptyState('No docket rendered yet', error.message, [['See the case pipeline', '#/case'], ['Browse witnesses', '#/witnesses']]));
+      const next = nextStep(state.caseInfo);
+      clear(main).append(emptyState('No docket rendered yet', 'The frozen questions are answered once the stages before docket have run.', [['See the case pipeline', '#/case'], ['Browse witnesses', '#/witnesses']]),
+        next ? h('div', { class: 'empty-next' }, h('p', { class: 'small muted' }, `Next: ${next.step}`), h('pre', { class: 'wrap' }, next.command), h('p', { class: 'small' }, copyButton(next.command, 'copy command'))) : null);
       return;
     }
     throw error;
@@ -420,7 +424,7 @@ function questionCard(answer, question, ctx, open) {
     h('span', { class: 'qid' }, answer.question_id),
     h('span', { class: 'qlabel' }, question ? question.label : ''),
     badge(answer.outcome, ctx.meanings),
-    h('span', { class: 'headline' }, answer.headline,
+    h('div', { class: 'headline' }, answer.headline,
       answer.gaps && answer.gaps.length
         ? h('div', { class: 'gap-line' }, text('glyph', '∅ '), answer.outcome === 'supported' ? 'Caveat: ' : 'Missing: ', answer.gaps[0], answer.gaps.length > 1 ? text('dim', ` (+${answer.gaps.length - 1} more)`) : null)
         : null,
@@ -438,9 +442,6 @@ function questionCard(answer, question, ctx, open) {
   }
   if (answer.numbers && Object.keys(answer.numbers).length) {
     body.append(h('h3', null, 'Evidence'), renderNumbers(answer.numbers, ctx));
-  }
-  if (answer.coverage_ids && answer.coverage_ids.length) {
-    body.append(h('p', { class: 'small muted' }, 'Coverage estimates: ', h('span', { class: 'chips' }, answer.coverage_ids.map(id => h('span', { class: 'chip' }, id)))));
   }
   if (answer.citation_ids && answer.citation_ids.length) {
     body.append(h('div', { class: 'cites' }, h('span', { class: 'label' }, 'Citations'), answer.citation_ids.map(id => citeChip(id, ctx))));
@@ -607,8 +608,10 @@ async function pageWitnesses() {
   const main = startPage('Witnesses', 'witnesses');
   const data = await api('/api/witnesses');
   clear(main);
+  const verifyButton = h('button', { class: 'btn small', type: 'button', onclick: () => verifyAll(data.witnesses, main, verifyButton) }, 'Verify all snapshots');
   main.append(h('header', { class: 'page-head' }, h('div', null, h('h1', null, 'Witnesses'),
-    h('p', { class: 'muted lede' }, 'One witness per acquired evidence file, hashed and snapshotted before anything parsed it. Only pairs of domains declared independent can yield a supported cross-source match.'))));
+    h('p', { class: 'muted lede' }, 'One witness per acquired evidence file, hashed and snapshotted before anything parsed it. Verification re-checks each snapshot against the size and SHA-256 recorded at acquisition.')),
+    h('div', { class: 'page-meta' }, verifyButton)));
   const byDomain = new Map();
   for (const w of data.witnesses) {
     if (!byDomain.has(w.trust_domain)) byDomain.set(w.trust_domain, []);
@@ -622,19 +625,49 @@ async function pageWitnesses() {
       const relations = Object.entries(declared.related_to || {});
       main.append(h('p', { class: 'small muted' },
         relations.length ? ['Declared ', relations.map(([other, rel], i) => [i ? '; ' : '', badge(rel), ` of ${other}`])] : 'No trust relation declared with another domain.',
-        declared.authentic_records ? [' · ', badge('supported'), ' declared authentic: its recorder was outside the investigated actors\' control'] : ' · not declared authentic',
-        declared.exclusive_receipt_tokens ? [' · ', badge('supported'), ' exclusive receipt tokens declared'] : ' · receipt tokens not declared exclusive'));
+        declared.authentic_records ? [' · ', badge('supported'), ' declared authentic'] : ' · not declared authentic',
+        witnesses.some(w => w.adapter === 'inspect-eval') ? (declared.exclusive_receipt_tokens ? [' · ', badge('supported'), ' exclusive receipt tokens declared'] : ' · receipt tokens not declared exclusive') : null,
+        ' · ', h('a', { href: '#/case' }, 'declarations')));
     }
-    main.append(h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
-      h('thead', null, h('tr', null, ['File', 'Kind', 'Adapter', 'Size', 'Citations', 'SHA-256', 'Acquired', 'Coverage claim', 'Ingested'].map(c => h('th', null, c)))),
-      h('tbody', null, witnesses.map(w => h('tr', { class: 'clickable', onclick: () => navigate('/witnesses/' + encodeURIComponent(w.witness_id)) },
-        h('td', null, h('a', { href: '#/witnesses/' + encodeURIComponent(w.witness_id), title: w.filename, class: HASH_RE.test(w.filename) ? 'mono' : null }, HASH_RE.test(w.filename) ? w.filename.slice(0, 16) + '…' : w.filename), h('div', { class: 'tiny dim mono' }, w.witness_id)),
-        h('td', null, w.kind), h('td', null, w.adapter), h('td', { class: 'num' }, fmtBytes(w.size_bytes)),
-        h('td', { class: 'num' }, w.row_count == null ? '—' : fmtInt(w.row_count)),
-        h('td', null, hashSpan(w.sha256)), h('td', null, mono(w.acquired_at)),
-        h('td', { class: 'small' }, w.coverage_claim),
-        h('td', null, w.ingested ? text('yes', '✓ yes') : text('no', '✕ not yet'))))))));
+    const files = witnesses.filter(w => !HASH_RE.test(w.filename));
+    const artifacts = witnesses.filter(w => HASH_RE.test(w.filename));
+    if (files.length) main.append(witnessTable(files));
+    if (artifacts.length) {
+      main.append(h('details', { class: 'artifacts', open: files.length ? null : true },
+        h('summary', null, `${artifacts.length} content-addressed artifact${artifacts.length === 1 ? '' : 's'} (bytes named by their SHA-256)`),
+        witnessTable(artifacts)));
+    }
   }
+}
+function witnessTable(witnesses) {
+  return h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
+    h('thead', null, h('tr', null, ['File', 'Kind', 'Adapter', 'Size', 'Citations', 'SHA-256', 'Acquired', 'Coverage claim', 'Ingested', 'Snapshot'].map(c => h('th', null, c)))),
+    h('tbody', null, witnesses.map(w => h('tr', { class: 'clickable', onclick: () => navigate('/witnesses/' + encodeURIComponent(w.witness_id)) },
+      h('td', null, h('a', { href: '#/witnesses/' + encodeURIComponent(w.witness_id), title: w.filename, class: HASHNAME_RE.test(w.filename) ? 'mono' : null }, shortName(w.filename)), h('div', { class: 'tiny dim mono' }, w.witness_id)),
+      h('td', null, w.kind), h('td', null, w.adapter), h('td', { class: 'num' }, fmtBytes(w.size_bytes)),
+      h('td', { class: 'num' }, w.row_count == null ? '—' : fmtInt(w.row_count)),
+      h('td', null, hashSpan(w.sha256)), h('td', null, mono(w.acquired_at)),
+      h('td', { class: 'small' }, w.coverage_claim),
+      h('td', null, w.ingested ? text('yes', '✓ yes') : text('no', '✕ not yet')),
+      h('td', { 'data-verify': w.witness_id }, text('dim', 'not checked')))))));
+}
+async function verifyAll(witnesses, main, button) {
+  button.disabled = true;
+  let ok = 0, failed = 0;
+  for (const w of witnesses) {
+    button.textContent = `Verifying ${ok + failed + 1} of ${witnesses.length}…`;
+    const target = main.querySelector(`[data-verify="${w.witness_id}"]`);
+    try {
+      const detail = await api('/api/witnesses/' + encodeURIComponent(w.witness_id));
+      if (detail.verified) { ok++; if (target) clear(target).append(text('yes', '✓ verified')); }
+      else { failed++; if (target) clear(target).append(text('no', '✕ failed'), h('div', { class: 'tiny' }, detail.error)); }
+    } catch (error) {
+      failed++;
+      if (target) clear(target).append(text('no', '✕ error'), h('div', { class: 'tiny' }, error.message));
+    }
+  }
+  button.textContent = failed ? `${ok} verified, ${failed} failed` : `All ${ok} snapshots verified`;
+  button.disabled = false;
 }
 
 async function pageWitness(id) {
@@ -765,11 +798,11 @@ async function pageEntity(id) {
     row('Time', e.time_lower ? [mono(e.time_lower), e.time_upper !== e.time_lower ? [' → ', mono(e.time_upper)] : null] : text('dim', 'no time claim')),
     e.time_grade ? row('Time grade', e.time_grade, e.time_uncertainty_s != null ? text('dim', ` · ±${e.time_uncertainty_s}s`) : null, e.winning_clock_id ? text('dim', ` · clock ${e.winning_clock_id}`) : null) : null,
     data.questions.length ? row('Serves questions', h('span', { class: 'chips' }, data.questions.map(q => h('a', { class: 'chip', href: '#/docket/' + q }, q)))) : null))));
-  main.append(h('h2', null, 'Attributes'), Object.keys(e.attrs || {}).length ? kvTable(e.attrs, ctx) : h('p', { class: 'muted' }, 'No attributes.'));
-  if (data.time_claims.length) main.append(h('h2', null, 'Time claims'), genericTable(data.time_claims, ctx, { hide: ['entity_id', 'witness_id'] }));
   main.append(h('h2', null, `As subject (${data.outgoing.length})`), data.outgoing.length ? relationTable(data.outgoing, ctx) : h('p', { class: 'muted' }, 'No relations with this entity as subject.'));
   main.append(h('h2', null, `As object (${data.incoming.length})`), data.incoming.length ? relationTable(data.incoming, ctx) : h('p', { class: 'muted' }, 'No relations with this entity as object.'));
   main.append(h('p', { class: 'small' }, h('a', { href: '#/relations?entity=' + encodeURIComponent(id) }, 'All relations involving this entity')));
+  main.append(h('h2', null, 'Attributes'), Object.keys(e.attrs || {}).length ? kvTable(e.attrs, ctx) : h('p', { class: 'muted' }, 'No attributes.'));
+  if (data.time_claims.length) main.append(h('h2', null, 'Time claims'), genericTable(data.time_claims, ctx, { hide: ['entity_id', 'witness_id'] }));
 }
 
 /* ---------- query ---------- */
@@ -840,27 +873,47 @@ function download(name, content, type) {
 /* ---------- case ---------- */
 async function pageCase() {
   const main = startPage('Case', 'case');
-  const data = await api('/api/case');
+  const [data, witnessData] = await Promise.all([api('/api/case'), api('/api/witnesses')]);
   state.caseInfo = data;
   const config = data.config;
   clear(main);
   main.append(h('header', { class: 'page-head' }, h('div', null, h('h1', null, data.title),
-    h('p', { class: 'muted lede' }, 'The declarations every conclusion is bound to, and which stages have run under them.')),
+    h('p', { class: 'muted lede' }, 'What to run next, and the declarations every conclusion is bound to.')),
     h('div', { class: 'page-meta' }, h('a', { class: 'btn small', href: '/api/reports/case.json' }, 'case.json'), h('a', { class: 'btn small', href: '/api/reports/manifest.json' }, 'manifest.json'))));
 
-  main.append(h('h2', null, 'Trust domains'));
-  main.append(h('div', { class: 'cards' }, config.trust_domains.map(d => h('div', { class: 'card' },
-    h('h3', null, d.id, text('muted', ` · ${d.label}`)),
-    h('p', { class: 'small' }, d.authentic_records
-      ? [badge('supported'), ' Declared authentic: its records were written by a recorder the investigated actors could not control. A unique matching receipt from this domain can be supported without a receipt token.']
-      : [badge('ambiguous'), ' Not declared authentic: a native event in this domain could have been written or edited by the investigated actors.']),
-    h('p', { class: 'small' }, d.exclusive_receipt_tokens
-      ? [badge('supported'), ' Declared exclusive receipt tokens: a genuine token could not be relayed or copied into another native event, so a matching token can support attribution. A false declaration produces a wrong attribution; hashes cannot verify it.']
-      : [badge('ambiguous'), ' Receipt tokens not declared exclusive: a matching token shows possession only and the attribution stays ambiguous (receipt_possession_only).']),
-    h('p', { class: 'small' }, Object.keys(d.related_to || {}).length
-      ? Object.entries(d.related_to).map(([other, rel], i) => [i ? '; ' : '', badge(rel), ` of ${other}`])
-      : text('muted', 'No relation declared with another domain; cross-domain matches cannot become supported.')),
-    d.sources && d.sources.length ? h('p', { class: 'small dim' }, 'Sources: ', d.sources.join(', ')) : null))));
+  const next = nextStep(data);
+  main.append(h('h2', null, 'Pipeline'));
+  main.append(next
+    ? callout('next', `Next: ${next.step}`, next.detail ? h('p', { class: 'small' }, next.detail) : null, h('pre', { class: 'wrap' }, next.command), h('p', { class: 'small' }, copyButton(next.command, 'copy command')))
+    : callout('good', 'Every required stage has run', h('p', { class: 'small' }, 'The docket reflects the current declarations and analyzer build.')));
+  main.append(h('ol', { class: 'steps' }, data.pipeline.map(step => stepItem(step, next && step.step === next.step))));
+  main.append(h('details', { class: 'optional' }, h('summary', null, `Optional stages (${data.optional.filter(s => s.done).length} of ${data.optional.length} run)`),
+    h('ol', { class: 'steps' }, data.optional.map(step => stepItem(step)))));
+
+  const byDomain = {};
+  for (const w of witnessData.witnesses) (byDomain[w.trust_domain] = byDomain[w.trust_domain] || []).push(w);
+  main.append(h('h2', null, 'Trust domains'), h('p', { class: 'small muted' }, 'Only pairs declared independent can yield a supported cross-source match. Authenticity and exclusivity are assumptions the docket names; hashes cannot verify them.'));
+  main.append(h('div', { class: 'cards' }, config.trust_domains.map(d => {
+    const held = byDomain[d.id] || [];
+    const adapters = {};
+    for (const w of held) adapters[w.adapter] = (adapters[w.adapter] || 0) + 1;
+    const holdsTranscripts = !held.length || held.some(w => w.adapter === 'inspect-eval');
+    return h('div', { class: 'card' },
+      h('h3', null, d.id, text('muted', ` · ${d.label}`)),
+      h('p', { class: 'small' }, held.length
+        ? [h('a', { href: '#/witnesses' }, `${held.length} witness${held.length === 1 ? '' : 'es'}`), text('muted', ': ' + Object.entries(adapters).map(([a, n]) => `${n} ${a}`).join(', '))]
+        : text('muted', 'No witnesses acquired in this domain yet.')),
+      h('p', { class: 'small' }, Object.keys(d.related_to || {}).length
+        ? Object.entries(d.related_to).map(([other, rel], i) => [i ? '; ' : '', badge(rel), ` of ${other}`])
+        : [badge('unknown'), ' No relation declared with another domain; cross-domain matches cannot become supported.']),
+      h('p', { class: 'small' }, d.authentic_records
+        ? [badge('supported'), ' Declared authentic: its records were written by a recorder the investigated actors could not control, so a unique matching receipt can be supported without a token.']
+        : [badge('ambiguous'), ' Not declared authentic: a native event here could have been written or edited by the investigated actors.']),
+      holdsTranscripts ? h('p', { class: 'small' }, d.exclusive_receipt_tokens
+        ? [badge('supported'), ' Declared exclusive receipt tokens: a genuine token could not be relayed or copied into another native event, so a matching token can support attribution. A false declaration produces a wrong attribution.']
+        : [badge('ambiguous'), ' Receipt tokens not declared exclusive: a matching token shows possession only, so the attribution stays ambiguous (receipt_possession_only).']) : null,
+      d.sources && d.sources.length ? h('p', { class: 'small dim' }, 'Sources: ', d.sources.join(', ')) : null);
+  })));
   if (!config.trust_domains.length) main.append(h('p', { class: 'muted' }, 'No trust domains declared.'));
 
   main.append(h('h2', null, 'Clock bounds'));
@@ -868,7 +921,22 @@ async function pageCase() {
     ? genericTable(config.clock_bounds.map(b => ({ clocks: `${b.clock_a} : ${b.clock_b}`, bound_seconds: b.bound_seconds, source: b.source, note: b.note })), {})
     : callout('warning', 'No clock bound declared', h('p', { class: 'small' }, 'Timing questions and absence contradictions stay not assessable without a runner:container bound. A declared bound is an assumption; a measured one is evidence.')));
 
-  main.append(h('h2', null, 'Other declarations'));
+  const stages = Object.entries(data.stages).sort((a, b) => a[1].completed_at.localeCompare(b[1].completed_at));
+  if (stages.length) {
+    main.append(h('h2', null, 'Stage history'), genericTable(stages.map(([name, s]) => ({
+      stage: name, completed_at: s.completed_at,
+      configuration: data.stale.includes(name) ? 'differs' : 'exact',
+      analyzer: data.stale_analyzer.includes(name) ? 'differs' : 'exact',
+      analyzer_build: s.analyzer_build_id,
+      parameters: Object.fromEntries(Object.entries(s.parameters || {}).filter(([k]) => k !== 'case_config_sha256')),
+    })), { meanings: { exact: 'Matches the current case.json and analyzer build', differs: 'Ran under an earlier case.json or analyzer build; re-run it' } }));
+  }
+  main.append(h('h2', null, 'Reports'));
+  const reports = Object.entries(data.reports);
+  main.append(reports.length ? genericTable(reports.map(([name, r]) => ({ report: h('a', { href: '/api/reports/' + name }, name), path: r.path, sha256: r.sha256, verified: r.verified })), {}) : h('p', { class: 'muted' }, 'No docket rendered.'));
+  if (data.validation) main.append(h('p', { class: 'small' }, 'Validation against private truth recorded: ', h('a', { href: '/api/reports/validation.json' }, 'validation.json'), ' · ', h('a', { href: '#/docket' }, 'summary on the docket')));
+
+  main.append(h('h2', null, 'Other declarations and identity'));
   main.append(kvTable({
     populations: config.populations.length ? config.populations : 'none declared in case.json (registry populations arrive as witnesses)',
     handle_patterns: config.handle_patterns,
@@ -877,29 +945,19 @@ async function pageCase() {
     'case.json sha256': data.config_sha256,
     'current analyzer build': data.analyzer_build_id,
   }, {}));
-
-  main.append(h('h2', null, 'Pipeline'), h('p', { class: 'small muted' }, 'Each stage records the case.json hash it ran under; a changed declaration makes every earlier stage stale.'));
-  main.append(h('ol', { class: 'steps' }, data.pipeline.map(step => stepItem(step))));
-  main.append(h('h3', null, 'Optional stages'), h('ol', { class: 'steps' }, data.optional.map(step => stepItem(step))));
-
-  const stages = Object.entries(data.stages).sort((a, b) => a[1].completed_at.localeCompare(b[1].completed_at));
-  if (stages.length) {
-    main.append(h('h2', null, 'Stage history'), genericTable(stages.map(([name, s]) => ({
-      stage: name, completed_at: s.completed_at, analyzer_build: s.analyzer_build_id,
-      configuration: data.stale.includes(name) ? 'differs' : 'exact',
-      analyzer: data.stale_analyzer.includes(name) ? 'differs' : 'exact',
-      parameters: Object.fromEntries(Object.entries(s.parameters || {}).filter(([k]) => k !== 'case_config_sha256')),
-    })), { meanings: { exact: 'Matches the current case.json and analyzer build', differs: 'Ran under an earlier case.json or analyzer build; re-run it' } }));
-  }
-  main.append(h('h2', null, 'Reports'));
-  const reports = Object.entries(data.reports);
-  main.append(reports.length ? genericTable(reports.map(([name, r]) => ({ report: h('a', { href: '/api/reports/' + name }, name), path: r.path, sha256: r.sha256, verified: r.verified })), {}) : h('p', { class: 'muted' }, 'No docket rendered.'));
-  if (data.validation) main.append(h('p', { class: 'small' }, 'Validation against private truth recorded: ', h('a', { href: '/api/reports/validation.json' }, 'validation.json'), ' · ', h('a', { href: '#/docket' }, 'summary on the docket')));
   main.append(h('h2', null, 'Graph tables'), genericTable(Object.entries(data.table_rows).sort().map(([table, rows]) => ({ table, rows })), {}));
 }
-function stepItem(step) {
-  return h('li', { class: `step ${step.done ? 'done' : 'todo'}` },
-    h('span', { class: 'mark', 'aria-label': step.done ? 'done' : 'not run' }, step.done ? '✓' : '○'),
+function nextStep(info) {
+  if (!info || !info.pipeline) return null;
+  if (isStale(info)) {
+    const ingest = info.pipeline.find(s => s.step === 'ingest');
+    return { step: 'ingest again', detail: 'Declarations or the analyzer changed; re-run ingest, then the derived stages, before trusting the docket.', command: ingest ? ingest.command : 'eg ingest CASE' };
+  }
+  return info.pipeline.find(s => !s.done) || null;
+}
+function stepItem(step, isNext) {
+  return h('li', { class: `step ${step.done ? 'done' : 'todo'}${isNext ? ' next' : ''}` },
+    h('span', { class: 'mark', 'aria-label': step.done ? 'done' : isNext ? 'next' : 'not run' }, step.done ? '✓' : isNext ? '→' : '○'),
     h('span', { class: 'name' }, step.step),
     h('span', null, step.detail ? h('div', { class: 'small' }, step.detail) : null, h('code', { class: 'small' }, step.command)));
 }

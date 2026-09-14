@@ -213,6 +213,7 @@ td .clamp { min-width: 220px; }
 .callout.serious { border-left-color: var(--serious); }
 .callout.critical { border-left-color: var(--critical); }
 .callout.neutral { border-left-color: var(--axis); }
+.callout.next { border-left-color: var(--accent); }
 .callout ul { margin-bottom: 0; }
 #stale-banner { padding: 0 28px; }
 #stale-banner .callout { margin: 14px 0 0; }
@@ -332,6 +333,13 @@ textarea.sql { width: 100%; min-height: 130px; font-family: var(--mono); font-si
 .step .mark { font-weight: 700; text-align: center; }
 .step.done .mark { color: var(--good-ink); }
 .step.todo .mark { color: var(--muted); }
+.step.next { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 6%, var(--surface)); }
+.step.next .mark { color: var(--accent-ink); }
+details.optional { margin: 10px 0 0; }
+details.optional > summary, details.artifacts > summary { cursor: pointer; color: var(--accent-ink); padding: 6px 0; font-size: 13px; }
+details.optional > summary:hover, details.artifacts > summary:hover { text-decoration: underline; }
+details.artifacts { margin: 10px 0 18px; }
+.empty-next { max-width: 720px; margin: 12px auto 0; }
 .step .name { font-weight: 600; }
 .step code { display: inline-block; margin-top: 2px; }
 

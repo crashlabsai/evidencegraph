@@ -122,6 +122,16 @@ def test_witnesses_relations_and_entities_browse_the_graph(viewer):
 
     status, relations = call(viewer + "/api/relations?limit=5")
     assert status == 200 and relations["total"] > 5 and len(relations["rows"]) == 5
+    status, everything = call(viewer + "/api/relations?limit=1000")
+    severity = {
+        "contradicted": 0,
+        "ambiguous": 1,
+        "unmatched": 2,
+        "not_assessable": 3,
+        "supported": 4,
+    }
+    ranks = [severity[r["outcome"]] for r in everything["rows"]]
+    assert ranks == sorted(ranks), "unresolved relations are listed before supported ones"
     kind = relations["facets"]["kind"][0]["value"]
     status, filtered = call(viewer + f"/api/relations?kind={kind}&limit=1000")
     assert status == 200 and {r["kind"] for r in filtered["rows"]} == {kind}
