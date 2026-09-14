@@ -344,6 +344,7 @@ const ROUTES = [
   [/^\/cite\/([^/]+)$/, async m => { await pageDocket(); openCitation(decodeURIComponent(m[1])); }],
 ];
 async function route() {
+  await loadCase();
   const { path, params } = parseHash();
   for (const [pattern, handler] of ROUTES) {
     const match = path.match(pattern);
@@ -381,7 +382,6 @@ async function pageDocket(focus) {
         : h('span', { class: 'badge critical' }, text('glyph', '✕'), 'docket.json hash differs from manifest'),
       h('a', { class: 'btn small', href: '/api/reports/DOCKET.md' }, 'DOCKET.md'),
       h('a', { class: 'btn small', href: '/api/reports/docket.json' }, 'docket.json'))));
-  if (isStale(data)) main.append(staleCallout(data.stale, data.stale_analyzer));
 
   const counts = {};
   for (const a of answers) counts[a.outcome] = (counts[a.outcome] || 0) + 1;
@@ -496,17 +496,22 @@ function gapsSection(answers) {
     h('ul', null, [...gaps.entries()].map(([gap, ids]) => h('li', null, gap, ' ', text('dim small', ids.join(', '))))));
 }
 
+function stageList(label, names) {
+  const chips = h('span', { class: 'chips' }, names.map(s => h('span', { class: 'chip' }, s)));
+  if (names.length <= 6) return h('p', { class: 'small' }, label, ': ', chips);
+  return h('details', { class: 'small' }, h('summary', null, `${label}: ${names.length} stages`), chips);
+}
 function staleCallout(stale, staleAnalyzer) {
   const wrap = h('div');
   if (stale && stale.length) {
     wrap.append(callout('critical', 'Case declarations changed after these stages ran',
       h('p', null, 'Trust and clock declarations are inputs to every conclusion. Re-run ', code('eg ingest'), ' and the derived stages before trusting, rendering or exporting this docket.'),
-      h('p', { class: 'small' }, 'Stale stages: ', h('span', { class: 'chips' }, stale.map(s => h('span', { class: 'chip' }, s))))));
+      stageList('Stale stages', stale)));
   }
   if (staleAnalyzer && staleAnalyzer.length) {
     wrap.append(callout('critical', 'The analyzer changed after these stages ran',
       h('p', null, 'An upgraded rule must not present conclusions computed by the old one. Re-run ', code('eg ingest'), ' and the derived stages with the current analyzer before trusting, rendering or exporting this docket.'),
-      h('p', { class: 'small' }, 'Stages from an earlier analyzer: ', h('span', { class: 'chips' }, staleAnalyzer.map(s => h('span', { class: 'chip' }, s))))));
+      stageList('Stages from an earlier analyzer', staleAnalyzer)));
   }
   return wrap;
 }
@@ -811,7 +816,6 @@ async function pageCase() {
   main.append(h('header', { class: 'page-head' }, h('div', null, h('h1', null, data.title),
     h('p', { class: 'muted lede' }, 'The declarations every conclusion is bound to, and which stages have run under them.')),
     h('div', { class: 'page-meta' }, h('a', { class: 'btn small', href: '/api/reports/case.json' }, 'case.json'), h('a', { class: 'btn small', href: '/api/reports/manifest.json' }, 'manifest.json'))));
-  if (isStale(data)) main.append(staleCallout(data.stale, data.stale_analyzer));
 
   main.append(h('h2', null, 'Trust domains'));
   main.append(h('div', { class: 'cards' }, config.trust_domains.map(d => h('div', { class: 'card' },
@@ -905,6 +909,6 @@ function init() {
   $('#backdrop').addEventListener('click', closeDrawer);
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !$('#drawer').hidden) closeDrawer(); });
   window.addEventListener('hashchange', route);
-  loadCase().then(route);
+  route();
 }
 document.addEventListener('DOMContentLoaded', init);
