@@ -252,10 +252,14 @@ function relationTable(rows, ctx) {
     }
     return link;
   }]);
-  columns.push(['Method', r => methodChip(r.method, ctx)]);
+  columns.push(['Method', r => {
+    const hint = ctx && ctx.hints && ctx.hints[r.method];
+    if (r.outcome === 'supported' || !hint) return methodChip(r.method, ctx);
+    return h('div', null, methodChip(r.method, ctx), h('div', { class: 'tiny muted hint' }, hint));
+  }]);
   columns.push(['Trust', r => badge(r.trust_domain_relation || 'unknown')]);
   columns.push(['Rationale', r => clampText(r.rationale)]);
-  columns.push(['Cites', r => h('span', { class: 'chips' }, (r.citation_ids || []).map(id => citeChip(id, ctx)))]);
+  columns.push(['Cites', r => h('span', { class: 'chips stack' }, (r.citation_ids || []).map(id => citeChip(id, ctx)))]);
   return h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
     h('thead', null, h('tr', null, columns.map(([name]) => h('th', null, name)))),
     h('tbody', null, rows.map(r => h('tr', { title: `${r.relation_id} · run ${r.run_id}` }, columns.map(([, render]) => h('td', null, render(r))))))));
@@ -389,6 +393,8 @@ async function pageDocket(focus) {
     tile('Questions', answers.length, showAll ? 'all sixteen frozen questions' : 'relevant to the ingested evidence'),
     Object.keys(OUTCOMES).map(o => tile(badge(o, ctx.meanings), counts[o] || 0, ctx.meanings[o].split('.')[0] + '.'))));
 
+  main.append(h('div', { class: 'panels' }, gapsPanel(answers), assumptionsPanel(answers)));
+
   const toggle = h('input', { type: 'checkbox', checked: showAll || null, onchange: (e) => { localStorage.setItem('eg.showAll', e.target.checked ? '1' : '0'); route(); } });
   main.append(h('div', { class: 'toolbar' },
     h('label', null, toggle, 'Show all sixteen questions, including those the ingested evidence cannot address'),
@@ -401,7 +407,6 @@ async function pageDocket(focus) {
 
   if (docket.validation) main.append(validationSection(docket.validation));
   main.append(witnessInventory(docket.witnesses));
-  main.append(gapsSection(answers));
   main.append(h('p', { class: 'muted small' }, 'Click any citation to resolve it against the immutable snapshot with its hash re-verified, or run ', code('eg cite CASE REF_ID'), '. The full graph is queryable on the Query page.'));
   if (focus) {
     const target = document.getElementById('q-' + focus);
@@ -415,7 +420,13 @@ function questionCard(answer, question, ctx, open) {
     h('span', { class: 'qid' }, answer.question_id),
     h('span', { class: 'qlabel' }, question ? question.label : ''),
     badge(answer.outcome, ctx.meanings),
-    h('span', { class: 'headline' }, answer.headline)));
+    h('span', { class: 'headline' }, answer.headline,
+      answer.gaps && answer.gaps.length
+        ? h('div', { class: 'gap-line' }, text('glyph', '∅ '), answer.outcome === 'supported' ? 'Caveat: ' : 'Missing: ', answer.gaps[0], answer.gaps.length > 1 ? text('dim', ` (+${answer.gaps.length - 1} more)`) : null)
+        : null,
+      answer.assumptions && answer.assumptions.length
+        ? h('div', { class: 'gap-line' }, text('glyph', '? '), `Rests on ${answer.assumptions.length} declared assumption${answer.assumptions.length === 1 ? '' : 's'}`)
+        : null)));
   const body = h('div', { class: 'qbody' });
   if (question) body.append(h('p', { class: 'question-text' }, question.text));
   body.append(h('p', { class: 'small muted' }, h('strong', null, answer.outcome.replace(/_/g, ' ')), ': ', ctx.meanings[answer.outcome]));
@@ -485,15 +496,35 @@ function witnessInventory(witnesses) {
     genericTable(rows, {}));
 }
 
-function gapsSection(answers) {
-  const gaps = new Map();
-  for (const a of answers) for (const gap of a.gaps || []) {
-    if (!gaps.has(gap)) gaps.set(gap, []);
-    gaps.get(gap).push(a.question_id);
+function groupByText(answers, field) {
+  const groups = new Map();
+  for (const a of answers) for (const item of a[field] || []) {
+    if (!groups.has(item)) groups.set(item, []);
+    groups.get(item).push(a.question_id);
   }
-  if (!gaps.size) return null;
-  return h('section', null, h('h2', null, 'Known gaps'),
-    h('ul', null, [...gaps.entries()].map(([gap, ids]) => h('li', null, gap, ' ', text('dim small', ids.join(', '))))));
+  return groups;
+}
+function questionChips(ids) {
+  return h('span', { class: 'chips' }, ids.map(id => h('a', { class: 'chip', href: '#/docket/' + id, title: 'Open this question' }, id)));
+}
+function gapsPanel(answers) {
+  const gaps = groupByText(answers, 'gaps');
+  const unresolved = answers.filter(a => a.outcome !== 'supported').length;
+  return h('section', { class: 'panel callout serious', 'aria-label': 'Evidence still missing' },
+    h('div', { class: 'callout-title' }, text('glyph', '∅'), 'Evidence still missing'),
+    h('p', { class: 'small muted' }, `${unresolved} of ${answers.length} questions are unresolved. Each item names what is absent or what would change a line; an unresolved line never means the action did not happen.`),
+    gaps.size
+      ? h('ul', null, [...gaps.entries()].map(([gap, ids]) => h('li', null, gap, ' ', questionChips(ids))))
+      : h('p', { class: 'small muted' }, 'No gaps recorded for these questions.'));
+}
+function assumptionsPanel(answers) {
+  const assumptions = groupByText(answers, 'assumptions');
+  return h('section', { class: 'panel callout warning', 'aria-label': 'Assumptions the findings rest on' },
+    h('div', { class: 'callout-title' }, text('glyph', '?'), 'Assumptions the findings rest on'),
+    h('p', { class: 'small muted' }, 'Declared in case.json, not established by hashes. Treat each as part of the supported line it carries.'),
+    assumptions.size
+      ? h('ul', null, [...assumptions.entries()].map(([item, ids]) => h('li', null, item, ' ', questionChips(ids))))
+      : h('p', { class: 'small muted' }, 'No supported line rests on a declared assumption.'));
 }
 
 function stageList(label, names) {

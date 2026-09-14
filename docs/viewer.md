@@ -14,10 +14,13 @@ The viewer never mutates a case. Every request re-reads the published
 
 ## Pages
 
-**Docket.** The frozen questions relevant to the ingested evidence, each with its
-status, one-line finding, the full question text, and what the status means. Open a
-line to see the assumptions it rests on, the gaps that would change it, the
-per-record evidence (outcomes, methods, matched actions, rationale) and its
+**Docket.** Status tiles, then two panels an investigator reads first: the
+evidence still missing, with every gap linked to the questions it blocks, and the
+declared assumptions the supported lines rest on. Below them, each frozen question
+shows its status, one-line finding and, without expanding, its first gap or the
+number of assumptions it carries. Open a line for the full question text, what the
+status means, the per-record evidence (outcomes, methods, matched actions,
+rationale, and for unresolved records the change that would resolve them) and its
 citations. The page also carries the coverage estimate with its interval, the
 validation summary when a private-truth score exists, the witness inventory, and
 every known gap. `DOCKET.md` and `docket.json` are one click away, and the viewer

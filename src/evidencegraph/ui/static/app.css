@@ -188,6 +188,8 @@ button.chip:hover { border-color: var(--accent); color: var(--accent-ink); }
 .chip.cite .chip-glyph { color: var(--accent-ink); font-family: var(--sans); }
 .chip.method { font-family: var(--sans); font-size: 12px; border-style: dashed; }
 .chips { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.chips.stack { display: flex; flex-direction: column; align-items: flex-start; }
+td .clamp { min-width: 220px; }
 .badge { font-weight: 600; font-family: var(--sans); }
 .badge .glyph { font-weight: 700; }
 .badge.good { color: var(--good-ink); border-color: var(--good); background: color-mix(in oklab, var(--good) 11%, var(--surface)); }
@@ -269,6 +271,17 @@ details.question > summary:hover { background: color-mix(in oklab, var(--accent)
   details.question > summary { grid-template-columns: 12px auto 1fr; }
   .headline { grid-column: 2 / -1; }
 }
+
+/* gap and assumption panels */
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 18px; align-items: start; }
+@media (max-width: 1000px) { .panels { grid-template-columns: 1fr; } }
+.panel { margin: 0; }
+.panel ul { margin: 6px 0 0; padding-left: 18px; }
+.panel li { margin: 5px 0; }
+.panel .chips { margin-left: 4px; vertical-align: middle; }
+.gap-line { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; font-weight: 400; }
+.gap-line .glyph { font-weight: 700; }
+.hint { max-width: 280px; margin-top: 3px; line-height: 1.35; }
 
 /* outcome strip + meter */
 .strip { display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: hidden; margin: 6px 0 6px; max-width: 520px; }

@@ -215,3 +215,18 @@ def test_exported_bundle_is_served_read_only(wiki_case, tmp_path):
         "validation": None,
         "verified": None,
     }
+
+
+def test_viewer_source_is_not_part_of_the_analyzer_identity(tmp_path):
+    from evidencegraph.provenance import source_tree_sha256
+
+    tree = tmp_path / "pkg"
+    (tree / "ui").mkdir(parents=True)
+    (tree / "engine.py").write_text("RULE = 1\n")
+    (tree / "ui" / "server.py").write_text("VIEW = 1\n")
+    before = source_tree_sha256(tree, exclude=("ui",))
+    (tree / "ui" / "server.py").write_text("VIEW = 2\n")
+    assert source_tree_sha256(tree, exclude=("ui",)) == before
+    assert source_tree_sha256(tree) != before
+    (tree / "engine.py").write_text("RULE = 2\n")
+    assert source_tree_sha256(tree, exclude=("ui",)) != before
