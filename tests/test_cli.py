@@ -99,8 +99,8 @@ def test_documented_recipe_runs_end_to_end(tmp_path):
     run("docket", case)
     docket = json.loads((case / "docket.json").read_text())
     answers = {a["question_id"]: a for a in docket["answers"]}
-    assert answers["LQ1"]["outcome"] == "supported"
-    assert answers["LQ1"]["numbers"]["outcomes"] == {"supported": 9, "unmatched": 3}
+    assert answers["LQ1"]["outcome"] == "ambiguous"
+    assert answers["LQ1"]["numbers"]["outcomes"] == {"ambiguous": 9, "unmatched": 3}
     rows = json.loads(
         run(
             "query",
@@ -109,7 +109,7 @@ def test_documented_recipe_runs_end_to_end(tmp_path):
         )  # fmt: skip
     )
     assert {(r["outcome"], r["method"]): r["n"] for r in rows} == {
-        ("supported", "independent_receipt_binding"): 9,
+        ("ambiguous", "receipt_possession_only"): 9,
         ("unmatched", "key_and_version"): 3,
     }
     ref = answers["LQ1"]["citation_ids"][0]
@@ -119,3 +119,41 @@ def test_documented_recipe_runs_end_to_end(tmp_path):
     verified = json.loads(run("verify", bundle, "--recompute"))
     assert verified["verified"] and verified["recomputed"]
     assert "Typical order" in run("--help")
+
+
+def test_receipt_exclusivity_is_an_explicit_domain_declaration(tmp_path):
+    runner = CliRunner()
+    case = tmp_path / "explicit"
+    result = runner.invoke(
+        app,
+        [
+            "case",
+            "init",
+            str(case),
+            "--title",
+            "Explicit trust",
+            "--trust-domain",
+            "registry=Registry",
+            "--trust-domain",
+            "runner=Runner",
+            "--exclusive-receipts",
+            "runner",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    config = json.loads((case / "case.json").read_text())
+    assert [d["exclusive_receipt_tokens"] for d in config["trust_domains"]] == [False, True]
+    invalid = tmp_path / "invalid"
+    result = runner.invoke(
+        app,
+        [
+            "case",
+            "init",
+            str(invalid),
+            "--title",
+            "Invalid trust",
+            "--exclusive-receipts",
+            "unknown",
+        ],
+    )
+    assert result.exit_code != 0 and not invalid.exists()

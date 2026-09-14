@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased (incident-response stress pack)
+
+- Complete receipt relays now remain ambiguous by default; token-based attribution
+  requires explicit per-domain `exclusive_receipt_tokens` or an authentic recorder
+- Dockets name the token-exclusivity assumption and CLI exposes `--exclusive-receipts`
+- Analyzer upgrades invalidate old derived conclusions before rendering or export
+- Twelve paired evidence conditions, prior-rule ablation, claim-only positive control,
+  separate truth scoring, reproducible dockets and verified representative bundles
+- Incident-response protocol, evidence collection checklist, readiness assessment and
+  clearly marked research draft; all evaluation is scripted development work
+
 ## Unreleased (correctness + public readiness)
 
 - Receipt-token binding (or explicit `authentic_records`) required for supported

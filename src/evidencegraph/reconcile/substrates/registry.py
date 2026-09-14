@@ -62,8 +62,10 @@ class RegistrySubstrate(NoopHooks):
 
         Every other receipt field (key, digest, event id, timestamp) is public once the
         ledger is, so a receipt copied into a forged transcript event matches them all.
-        Only the token the registry handed to the caller separates the caller's own
-        receipt from a copy. Returns "bound", "mismatch", "unbound" (record committed,
+        A matching token establishes receipt possession. It cannot separate a genuine
+        tool event from a copy of the complete receipt, including the token. Causal
+        attribution additionally needs declared recorder authenticity or token
+        exclusivity. Returns "bound", "mismatch", "unbound" (record committed,
         claim carries no token) or "unavailable" (record publishes no commitment).
         """
         commitment = record["attrs"].get("receipt_token_sha256")

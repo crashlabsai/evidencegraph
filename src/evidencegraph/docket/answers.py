@@ -303,7 +303,7 @@ def lab_answers(store, config, manifest) -> list[DocketAnswer]:
         )
     if methods.get("independent_receipt_binding"):
         lq1_assumptions.append(
-            f"{methods['independent_receipt_binding']} supported attributions rest on registry receipt tokens; an actor holding a genuine receipt could still relay it"
+            f"{methods['independent_receipt_binding']} supported attributions rest on the declared assumption that receipt tokens could not be relayed or copied into another native tool event; the token hash does not verify this assumption"
         )
     answers = [
         DocketAnswer(

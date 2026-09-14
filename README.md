@@ -107,6 +107,11 @@ the finding. The questions themselves are explained in
 
 ## Cases in the repository
 
+- **Receipt relay and evidence sufficiency.** Twelve paired development conditions
+  expose a false attribution in the previous token rule and test the corrected
+  default, missing clocks, dependent witnesses, incomplete capture, and deliberately
+  false declarations. Run `uv run python scripts/incident_stress.py cases/stress`.
+  See [the incident-response work pack](docs/sprint/README.md).
 - **A staged registry incident** with private host truth. Ten seeds of one scripted
   scenario are checked against that truth: all nine supported attributions correct,
   both fabricated receipts contradicted, no false accusations, and a copied genuine
@@ -121,15 +126,16 @@ the finding. The questions themselves are explained in
 ## Known limits
 
 - **A matching receipt is not enough for write attribution.** Every receipt field is
-  public once the ledger is. Support requires either the registry's receipt-token
-  commitment binding the transcript's token, or an explicit `--authentic-records`
-  declaration that the transcript domain could not be fabricated, which the docket
-  names. Relaying a genuine receipt is not defended against.
+  copyable, including the token if another transcript discloses it. A matching token
+  stays `ambiguous` by default. Support requires declared `--authentic-records`, or a
+  matching token plus `--exclusive-receipts` for that transcript domain. The latter
+  asserts that tokens could not be relayed into another event; hashes cannot verify
+  it. A false declaration can still produce a false attribution.
 - **Absence is evidence only inside complete capture.** A claimed write is
   contradicted only when a complete independent population's window contains the
   whole tool call widened by the clock bound; otherwise the tool abstains.
 - **Conclusions are bound to `case.json`.** Changing a trust or clock declaration
-  blocks rendering and export until the stages are re-run.
+  or upgrading the analyzer blocks rendering and export until the stages are re-run.
 - **Handles and network prefixes never authenticate anyone.** Identity lines stay
   ambiguous by design.
 - **Background launch and process questions** need a host-side collection with public

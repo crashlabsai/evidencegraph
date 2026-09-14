@@ -30,7 +30,7 @@ def load_stage(case, stage):
                     label="Registry",
                     related_to={"runner": TrustDomainRelation.INDEPENDENT},
                 ),
-                TrustDomain(id="runner", label="Runner"),
+                TrustDomain(id="runner", label="Runner", exclusive_receipt_tokens=True),
             ),
             clock_bounds=(ClockBound(clock_a="runner", clock_b="container", bound_seconds=1),),
         ),

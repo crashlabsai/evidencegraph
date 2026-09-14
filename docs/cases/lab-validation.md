@@ -1,5 +1,11 @@
 # Staged incident validation
 
+The scripted demo explicitly declares `exclusive_receipt_tokens` for its runner:
+these scenarios fabricate new receipts but do not relay genuine tokens. The broader
+[incident stress pack](../sprint/README.md) tests that boundary, including a complete
+receipt relay that must remain ambiguous without this declaration. Legacy case
+configurations lacking the field now default to no token-exclusivity assumption.
+
 The registry stage uses scripted A/D/B/C actions, genuine Inspect `.eval` containers,
 independent durable registry mutations, and dispatch-to-event UUID bindings. No model
 API or Docker is used. It publishes a script, copies it, overwrites its version,

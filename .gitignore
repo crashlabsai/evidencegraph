@@ -13,3 +13,7 @@ dist/
 .env
 .env.*
 .DS_Store
+
+# Sprint submission binaries kept local (Markdown source is in git)
+docs/sprint/report-draft.docx
+docs/sprint/report-draft.pdf

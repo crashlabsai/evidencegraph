@@ -11,7 +11,13 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-from evidencegraph.derive import authentic_witnesses, edge, run_stage, trust_relation
+from evidencegraph.derive import (
+    authentic_witnesses,
+    edge,
+    exclusive_receipt_witnesses,
+    run_stage,
+    trust_relation,
+)
 from evidencegraph.reconcile.substrate import Substrate
 from evidencegraph.reconcile.substrates.registry import RegistrySubstrate
 
@@ -31,12 +37,14 @@ def reconcile_record(
     bound: float | None,
     domain: str = "unknown",
     authentic: frozenset[str] = frozenset(),
+    exclusive_receipts: frozenset[str] = frozenset(),
 ):
     """Attribute one independently observed record to at most one recorded action.
 
     `authentic` lists witnesses whose trust domain declares `authentic_records`; only
-    those, or a substrate receipt binding, can turn a unique matching claim into a
-    supported attribution. A copied receipt matches every public field.
+    those, or a matching receipt in a witness with declared exclusive receipt tokens,
+    can turn a unique matching claim into a supported attribution. Possession of a
+    transferable receipt does not bind a native event to the mutation.
     """
     if bound is not None and (not math.isfinite(bound) or bound < 0):
         raise ValueError("clock bound must be finite and nonnegative")
@@ -172,12 +180,12 @@ def reconcile_record(
             )
         chosen = compatible[0]
         status = binding(record, chosen) if binding is not None else "unavailable"
-        if status == "bound":
+        if status == "bound" and chosen["witness_id"] in exclusive_receipts:
             return result(
                 "supported",
                 compatible,
                 "independent_receipt_binding",
-                "One compatible native tool event agrees with the independently recorded key, bytes and event id, and carries the receipt token the registry committed to for this record",
+                "One compatible native tool event agrees with the independent record and its receipt-token commitment, under the declared assumption that this token could not be relayed or copied into another tool event",
             )
         if status == "unbound":
             return result(
@@ -192,6 +200,13 @@ def reconcile_record(
                 compatible,
                 "independent_receipt",
                 "One compatible native tool event agrees with the independently recorded key, bytes and event id, under the declared assumption that this transcript's records could not be fabricated by the investigated actors",
+            )
+        if status == "bound":
+            return result(
+                "ambiguous",
+                compatible,
+                "receipt_possession_only",
+                "The claim carries a matching receipt token, but a copy of the complete receipt would match identically; attribution requires declared authentic records or exclusive receipt tokens",
             )
         return result(
             "ambiguous",
@@ -222,6 +237,7 @@ def reconcile_registry(store, config, manifest, bound):
     substrate = RegistrySubstrate()
     actions = store.entities("tool_event")
     authentic = authentic_witnesses(config, manifest)
+    exclusive_receipts = exclusive_receipt_witnesses(config, manifest)
     declared = declared_bound(config, bound)
     # Avoid a records × all-actions scan at corpus scale.
     index = defaultdict(list)
@@ -243,6 +259,7 @@ def reconcile_registry(store, config, manifest, bound):
                 bound=declared,
                 domain=domain,
                 authentic=authentic,
+                exclusive_receipts=exclusive_receipts,
             ),
         )
     # Missing successful claims are contradictions only under a complete, independent population.

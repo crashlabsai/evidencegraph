@@ -14,6 +14,7 @@ from evidencegraph.export.bagit import export_bundle, verify_bundle
 from evidencegraph.lab.logs import sample, write_eval
 from evidencegraph.manifest import read_manifest
 from evidencegraph.provenance import sha256_text
+from evidencegraph.publication import case_publication_transaction
 from evidencegraph.reconcile.engine import reconcile_case
 from evidencegraph.schema import CaseConfig, ClockBound, TrustDomain, TrustDomainRelation
 from evidencegraph.store import Store
@@ -111,7 +112,7 @@ def one_write_case(root):
                 TrustDomain(
                     id="registry", label="R", related_to={"runner": TrustDomainRelation.INDEPENDENT}
                 ),
-                TrustDomain(id="runner", label="T"),
+                TrustDomain(id="runner", label="T", exclusive_receipt_tokens=True),
             ),
             clock_bounds=(ClockBound(clock_a="runner", clock_b="container", bound_seconds=1),),
         ),
@@ -155,3 +156,32 @@ def test_changed_trust_assumptions_invalidate_derived_results(tmp_path):
     render(case)
     docket = json.loads((case / "docket.json").read_text())
     assert {a["question_id"]: a["outcome"] for a in docket["answers"]}["LQ1"] == "ambiguous"
+
+
+def test_changed_analyzer_cannot_render_old_supported_attributions(tmp_path):
+    case = one_write_case(tmp_path)
+    render(case)
+    with case_publication_transaction(case) as manifest:
+        for stage in manifest["stages"].values():
+            stage["analyzer_build_id"] = "previous-rule"
+    with pytest.raises(ValueError, match="analyzer changed"):
+        render(case)
+    with pytest.raises(ValueError, match="analyzer changed"):
+        export_bundle(case, tmp_path / "stale-bundle")
+    assert not (tmp_path / "stale-bundle").exists()
+    assert set(ingest(case).values()) == {"ingested"}
+    reconcile_case(case, "registry")
+    render(case)
+
+
+def test_removing_token_exclusivity_invalidates_and_downgrades_attribution(tmp_path):
+    case = one_write_case(tmp_path)
+    config = json.loads((case / "case.json").read_text())
+    # Legacy configurations lacking the field default to no exclusivity assumption.
+    config["trust_domains"][1].pop("exclusive_receipt_tokens")
+    (case / "case.json").write_text(json.dumps(config))
+    with pytest.raises(ValueError, match="configuration changed"):
+        render(case)
+    ingest(case)
+    reconcile_case(case, "registry")
+    assert outcomes(case) == [{"outcome": "ambiguous", "trust_domain_relation": "independent"}]
