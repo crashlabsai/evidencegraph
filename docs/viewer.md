@@ -54,7 +54,10 @@ and citation.
 no file or network access, results capped at a chosen row limit and downloadable
 as CSV or JSON. The table list shows columns and which question each table serves.
 
-**Case.** The pipeline first, with the next command to run ready to copy, then
+**Case.** The pipeline first, with the next command to run ready to copy. The
+reconciliation steps follow from the evidence ingested: a registry ledger needs the
+registry substrate, a wiki export needs wiki-saves plus the facts, identity and
+lineage stages, and a case with only transcripts has nothing to reconcile. Then
 the declarations every conclusion is bound to (trust domains with what each holds,
 independence, authentic records, exclusive receipt tokens, clock bounds), the stage
 history with whether each stage still matches the current case.json and analyzer

@@ -75,12 +75,11 @@ function titleCase(key) {
 function shortId(id) { return id.length > 14 ? id.slice(0, 14) + '…' : id; }
 function shortName(name) { const m = HASHNAME_RE.exec(name); return m ? m[1].slice(0, 16) + '…' + (m[2] || '') : name; }
 function fmtInt(n) { return Number(n).toLocaleString('en-US'); }
+function isRate(key) { return /share|rate|precision|recall|estimate|fraction|level/.test(String(key || '')); }
 function fmtNum(value, key) {
+  if (value == null || Number.isNaN(value)) return '—';
+  if (isRate(key) && value >= 0 && value <= 1) return (value * 100).toFixed(1) + '%';
   if (Number.isInteger(value)) return fmtInt(value);
-  const k = String(key || '');
-  if (/share|rate|precision|recall|estimate|fraction|level/.test(k) && value >= 0 && value <= 1) {
-    return (value * 100).toFixed(1) + '%';
-  }
   return String(Number(value.toFixed(4)));
 }
 function fmtBytes(n) {
@@ -330,12 +329,15 @@ function navigate(path, params) {
   const query = new URLSearchParams(Object.entries(params || {}).filter(([, v]) => v !== '' && v != null)).toString();
   location.hash = '#' + path + (query ? '?' + query : '');
 }
+let navigation = 0;
 function startPage(title, route) {
   document.title = `${title} · ${state.title}`;
   for (const link of document.querySelectorAll('.nav a')) link.classList.toggle('active', link.dataset.route === route);
-  const main = clear($('#main'));
-  main.append(h('div', { class: 'spinner' }, 'Loading…'));
-  return main;
+  // A page renders into its own container. When a later navigation replaces it, a
+  // slow handler for the earlier page keeps rendering into a detached element.
+  const page = h('div', { class: 'page' }, h('div', { class: 'spinner' }, 'Loading…'));
+  clear($('#main')).append(page);
+  return page;
 }
 const ROUTES = [
   [/^\/?$/, () => pageDocket()],
@@ -347,16 +349,19 @@ const ROUTES = [
   [/^\/entities\/([^/]+)$/, m => pageEntity(decodeURIComponent(m[1]))],
   [/^\/query$/, () => pageQuery()],
   [/^\/case$/, () => pageCase()],
-  [/^\/cite\/([^/]+)$/, async m => { await pageDocket(); openCitation(decodeURIComponent(m[1])); }],
+  [/^\/cite\/([^/]+)$/, async m => { const token = navigation; await pageDocket(); if (token === navigation) openCitation(decodeURIComponent(m[1])); }],
 ];
 async function route() {
+  const token = ++navigation;
+  closeDrawer();
   await loadCase();
+  if (token !== navigation) return;
   const { path, params } = parseHash();
   for (const [pattern, handler] of ROUTES) {
     const match = path.match(pattern);
     if (!match) continue;
     try { await handler(match, params); }
-    catch (error) { clear($('#main')).append(errorBox(error)); }
+    catch (error) { if (token === navigation) clear($('#main')).append(errorBox(error)); }
     return;
   }
   clear($('#main')).append(emptyState('No such page', path, [['Docket', '#/docket']]));
@@ -465,8 +470,8 @@ function validationSection(validation) {
   const tiles = [];
   if (validation.produced) {
     const p = validation.produced;
-    tiles.push(tile('Produced precision', fmtNum(p.precision, 'precision'), `${p.correct} correct of ${p.supported} supported`));
-    tiles.push(tile('Produced recall', fmtNum(p.recall, 'recall'), `${p.identifiable_with_captured_transcripts} identifiable with captured transcripts`));
+    tiles.push(metricTile('Produced precision', p.precision, 'precision', p.supported ? `${p.correct} correct of ${p.supported} supported` : 'no supported attributions to score'));
+    tiles.push(metricTile('Produced recall', p.recall, 'recall', p.identifiable_with_captured_transcripts ? `${p.identifiable_with_captured_transcripts} identifiable with captured transcripts` : 'no record identifiable from captured transcripts'));
     tiles.push(tile('Confident errors', p.confident_errors, 'wrong supported attributions'));
   }
   if (validation.spoofed) {
@@ -477,6 +482,11 @@ function validationSection(validation) {
   section.append(kvTable(validation, {}));
   section.append(h('p', { class: 'small' }, h('a', { href: '/api/reports/validation.json' }, 'validation.json')));
   return section;
+}
+
+function metricTile(label, value, key, sub) {
+  if (value == null) return tile(label, 'unavailable', sub, 'unavailable');
+  return tile(label, fmtNum(value, key), sub);
 }
 
 function witnessInventory(witnesses) {
@@ -550,7 +560,9 @@ function staleCallout(stale, staleAnalyzer) {
 function isStale(info) { return (info.stale && info.stale.length) || (info.stale_analyzer && info.stale_analyzer.length); }
 
 /* ---------- citation drawer ---------- */
+let drawerRequest = 0;
 async function openCitation(id) {
+  const token = ++drawerRequest;
   const drawer = $('#drawer');
   drawer.hidden = false;
   $('#backdrop').hidden = false;
@@ -560,9 +572,9 @@ async function openCitation(id) {
   $('#drawer-close').focus();
   try {
     const data = await api('/api/citations/' + encodeURIComponent(id));
-    clear(body).append(citationView(data));
+    if (token === drawerRequest && !drawer.hidden) clear(body).append(citationView(data));
   } catch (error) {
-    clear(body).append(errorBox(error));
+    if (token === drawerRequest && !drawer.hidden) clear(body).append(errorBox(error));
   }
 }
 function closeDrawer() {
@@ -861,7 +873,7 @@ function tableEntry(t, editor, run) {
 }
 function toCsv(columns, rows) {
   const escape = (v) => { const s = v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-  return [columns.join(','), ...rows.map(r => columns.map(c => escape(r[c])).join(','))].join('\n') + '\n';
+  return [columns.map(escape).join(','), ...rows.map(r => columns.map(c => escape(r[c])).join(','))].join('\n') + '\n';
 }
 function download(name, content, type) {
   const url = URL.createObjectURL(new Blob([content], { type }));
@@ -953,11 +965,12 @@ function nextStep(info) {
     const ingest = info.pipeline.find(s => s.step === 'ingest');
     return { step: 'ingest again', detail: 'Declarations or the analyzer changed; re-run ingest, then the derived stages, before trusting the docket.', command: ingest ? ingest.command : 'eg ingest CASE' };
   }
-  return info.pipeline.find(s => !s.done) || null;
+  return info.pipeline.find(s => !s.done && s.applicable !== false) || null;
 }
 function stepItem(step, isNext) {
-  return h('li', { class: `step ${step.done ? 'done' : 'todo'}${isNext ? ' next' : ''}` },
-    h('span', { class: 'mark', 'aria-label': step.done ? 'done' : isNext ? 'next' : 'not run' }, step.done ? '✓' : isNext ? '→' : '○'),
+  const skipped = step.applicable === false;
+  return h('li', { class: `step ${skipped ? 'skip' : step.done ? 'done' : 'todo'}${isNext ? ' next' : ''}` },
+    h('span', { class: 'mark', 'aria-label': skipped ? 'not applicable' : step.done ? 'done' : isNext ? 'next' : 'not run' }, skipped ? '–' : step.done ? '✓' : isNext ? '→' : '○'),
     h('span', { class: 'name' }, step.step),
     h('span', null, step.detail ? h('div', { class: 'small' }, step.detail) : null, h('code', { class: 'small' }, step.command)));
 }

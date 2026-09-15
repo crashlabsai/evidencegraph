@@ -277,7 +277,56 @@ class CaseView:
         def done(prefix: str) -> bool:
             return any(name == prefix or name.startswith(prefix + ".") for name in stages)
 
-        reconciled = sorted(name for name in stages if name.startswith("reconcile."))
+        def rows(stage: str, table: str) -> int | None:
+            entry = manifest["partitions"].get(stage, {}).get(table)
+            return entry["rows"] if entry else None
+
+        adapters = {w["adapter"] for w in witnesses.values()}
+        # Which reconciliation substrates apply follows from the evidence ingested,
+        # not from a fixed recipe: registry ledgers and wiki exports need different ones.
+        substrates = [
+            name
+            for adapter, name in (("lab-public", "registry"), ("collusion-wiki", "wiki-saves"))
+            if adapter in adapters
+        ]
+        wiki = "collusion-wiki" in adapters
+        derived_steps = [
+            {
+                "step": name,
+                "done": done(name),
+                "detail": f"{rows(name, 'relations') or rows(name, 'facts') or 0} rows derived"
+                if done(name)
+                else description,
+                "command": self.command(f"{name} CASE"),
+            }
+            for name, description in (
+                ("facts", "recompute the publisher's manifest facts from the export"),
+                ("identity", "derive identity hypotheses from shared labels and prefixes"),
+                ("lineage", "derive textual ancestry and byte-equality relations"),
+            )
+        ]
+        reconcile_steps = [
+            {
+                "step": f"reconcile {substrate}",
+                "done": f"reconcile.{substrate}" in stages,
+                "detail": f"{rows(f'reconcile.{substrate}', 'relations') or 0} relations derived"
+                if f"reconcile.{substrate}" in stages
+                else f"match {'save events to stored revisions' if substrate == 'wiki-saves' else 'independent records to transcript claims'}",
+                "command": self.command(f"reconcile CASE --substrate {substrate}"),
+            }
+            for substrate in substrates
+        ] or [
+            {
+                "step": "reconcile",
+                "done": False,
+                "applicable": False,
+                "detail": (
+                    "No independent record witness is ingested (a lab-public ledger or a "
+                    "collusion-wiki export), so there is nothing to reconcile claims against"
+                ),
+                "command": self.command("reconcile CASE --substrate registry"),
+            }
+        ]
         pipeline = [
             {
                 "step": "witness add",
@@ -293,12 +342,8 @@ class CaseView:
                 "detail": f"{len(ingested)} of {len(witnesses)} witnesses ingested",
                 "command": self.command("ingest CASE"),
             },
-            {
-                "step": "reconcile",
-                "done": bool(reconciled),
-                "detail": ", ".join(reconciled) or "no reconciliation run",
-                "command": self.command("reconcile CASE --substrate registry"),
-            },
+            *(derived_steps if wiki else []),
+            *reconcile_steps,
             {
                 "step": "coverage",
                 "done": "coverage" in stages,
@@ -321,13 +366,12 @@ class CaseView:
             },
         ]
         optional = [
-            {"step": name, "done": done(name), "command": self.command(command)}
-            for name, command in (
-                ("identity", "identity CASE"),
-                ("lineage", "lineage CASE"),
-                ("facts", "facts CASE"),
-                ("scan", "scan CASE --scanner claimed-writes --validation KEYS.csv"),
-            )
+            *([] if wiki else derived_steps),
+            {
+                "step": "scan",
+                "done": done("scan"),
+                "command": self.command("scan CASE --scanner claimed-writes --validation KEYS.csv"),
+            },
         ]
         optional.append(
             {

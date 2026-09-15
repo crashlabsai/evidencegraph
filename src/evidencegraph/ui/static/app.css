@@ -224,6 +224,7 @@ td .clamp { min-width: 220px; }
 .tile .value { font-size: 28px; font-weight: 650; line-height: 1.1; margin: 4px 0 2px; }
 .tile .label { font-size: 12.5px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
 .tile .sub { font-size: 11.5px; color: var(--muted); }
+.tile .value.unavailable { font-size: 17px; color: var(--ink-2); padding-top: 6px; }
 
 /* tables */
 .table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
@@ -333,6 +334,8 @@ textarea.sql { width: 100%; min-height: 130px; font-family: var(--mono); font-si
 .step .mark { font-weight: 700; text-align: center; }
 .step.done .mark { color: var(--good-ink); }
 .step.todo .mark { color: var(--muted); }
+.step.skip { opacity: 0.7; }
+.step.skip .mark { color: var(--muted); }
 .step.next { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 6%, var(--surface)); }
 .step.next .mark { color: var(--accent-ink); }
 details.optional { margin: 10px 0 0; }

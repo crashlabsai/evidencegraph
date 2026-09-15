@@ -62,6 +62,24 @@ def test_shell_static_files_and_case_summary(viewer):
     steps = {step["step"]: step for step in summary["pipeline"]}
     assert steps["ingest"]["done"] and not steps["docket"]["done"]
     assert steps["docket"]["command"].startswith("eg docket ")
+    # A wiki export needs the wiki-saves substrate and the wiki derived stages, not the
+    # registry substrate the generic recipe names.
+    assert "reconcile registry" not in steps and not steps["reconcile wiki-saves"]["done"]
+    assert steps["reconcile wiki-saves"]["command"].endswith("--substrate wiki-saves")
+    assert list(steps)[2:6] == ["facts", "identity", "lineage", "reconcile wiki-saves"]
+    assert {s["step"] for s in summary["optional"]} == {"scan", "validate"}
+
+
+def test_pipeline_marks_reconciliation_done_only_for_the_applicable_substrate(viewer, wiki_case):
+    from evidencegraph.reconcile.engine import reconcile_case
+
+    reconcile_case(wiki_case, "wiki-saves")
+    status, summary = call(viewer + "/api/case")
+    assert status == 200
+    steps = {step["step"]: step for step in summary["pipeline"]}
+    assert steps["reconcile wiki-saves"]["done"]
+    assert steps["reconcile wiki-saves"]["detail"] == "12 relations derived"
+    assert all(step.get("applicable", True) for step in summary["pipeline"])
 
 
 def test_docket_is_indexed_once_rendered(viewer, wiki_case):
