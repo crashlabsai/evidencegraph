@@ -452,7 +452,11 @@ function questionCard(answer, question, ctx, open) {
     body.append(h('div', { class: 'cites' }, h('span', { class: 'label' }, 'Citations'), answer.citation_ids.map(id => citeChip(id, ctx))));
   }
   details.append(body);
-  details.addEventListener('toggle', () => { if (details.open) history.replaceState(null, '', '#/docket/' + answer.question_id); });
+  const token = navigation;
+  details.addEventListener('toggle', () => {
+    // A card rendered for a superseded navigation must not rewrite the URL of the page now shown.
+    if (details.open && details.isConnected && token === navigation) history.replaceState(null, '', '#/docket/' + answer.question_id);
+  });
   return details;
 }
 
