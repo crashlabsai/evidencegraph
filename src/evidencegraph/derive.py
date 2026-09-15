@@ -16,6 +16,27 @@ def configuration_sha256(root: Path) -> str:
     return sha256_file(root / "case.json")
 
 
+def stale_stages(root: Path, manifest: dict) -> list[str]:
+    """Stages whose recorded case.json hash differs from the current declarations."""
+    current = configuration_sha256(root)
+    return sorted(
+        name
+        for name, stage in manifest.get("stages", {}).items()
+        if (name.startswith("ingest.") or "case_config_sha256" in stage.get("parameters", {}))
+        and stage.get("parameters", {}).get("case_config_sha256") != current
+    )
+
+
+def stale_analyzer_stages(manifest: dict) -> list[str]:
+    """Stages computed by a different analyzer build than the one now installed."""
+    return sorted(
+        name
+        for name, stage in manifest.get("stages", {}).items()
+        if (name.startswith("ingest.") or "case_config_sha256" in stage.get("parameters", {}))
+        and stage.get("analyzer_build_id") != analyzer_build_id()
+    )
+
+
 def require_current_configuration(root: Path, manifest: dict) -> str:
     """Every ingested and derived stage must have been computed under the current case.json.
 
@@ -23,12 +44,7 @@ def require_current_configuration(root: Path, manifest: dict) -> str:
     computed under different assumptions is stale, not merely old.
     """
     current = configuration_sha256(root)
-    stale = sorted(
-        name
-        for name, stage in manifest.get("stages", {}).items()
-        if (name.startswith("ingest.") or "case_config_sha256" in stage.get("parameters", {}))
-        and stage.get("parameters", {}).get("case_config_sha256") != current
-    )
+    stale = stale_stages(root, manifest)
     if stale:
         raise ValueError(
             "case configuration changed since "
@@ -36,12 +52,7 @@ def require_current_configuration(root: Path, manifest: dict) -> str:
             + "; re-run ingest and the derived stages before rendering, validating or exporting"
         )
     # An upgraded rule must not silently render an attribution made by the old rule.
-    stale_builds = sorted(
-        name
-        for name, stage in manifest.get("stages", {}).items()
-        if (name.startswith("ingest.") or "case_config_sha256" in stage.get("parameters", {}))
-        and stage.get("analyzer_build_id") != analyzer_build_id()
-    )
+    stale_builds = stale_analyzer_stages(manifest)
     if stale_builds:
         raise ValueError(
             "analyzer changed since "

@@ -76,6 +76,19 @@ exact input contracts for both adapters, how to read the docket, and which missi
 observation would resolve an unresolved line. `uv run eg --help` describes every
 command.
 
+## Read it in a browser
+
+```sh
+uv run eg serve cases/demo/case --open
+```
+
+`eg serve` starts a read-only viewer on `http://127.0.0.1:8765/` over a case or an
+exported bundle: the docket with every per-record outcome, assumption and gap;
+one-click citation resolution with the source hash re-verified; witnesses by trust
+domain; entity and relation browsing; a read-only SQL console; and the pipeline
+status with the command for each stage not yet run. It never mutates the case.
+See [docs/viewer.md](docs/viewer.md).
+
 ## Reading a docket
 
 | Status | Meaning |
@@ -143,6 +156,7 @@ is [docs/evidencegraph.md](docs/evidencegraph.md).
 | Document | Contents |
 |---|---|
 | [docs/getting-started.md](docs/getting-started.md) | Bring your own evidence: recipe, input contracts, reading the docket |
+| [docs/viewer.md](docs/viewer.md) | The local read-only viewer: what each page shows, security posture |
 | [docs/questions.md](docs/questions.md) | The sixteen frozen questions and the evidence each needs |
 | [docs/glossary.md](docs/glossary.md) | Witness, trust domain, receipt token, docket and the rest |
 | [docs/evidencegraph.md](docs/evidencegraph.md) | Status vocabulary and forensic rules |

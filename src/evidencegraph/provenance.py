@@ -73,12 +73,17 @@ def verify_file_identity(
         )
 
 
-def source_tree_sha256(root: str | Path) -> str:
-    """Hash Python source bytes and relative paths into one deterministic identity."""
+def source_tree_sha256(root: str | Path, *, exclude: tuple[str, ...] = ()) -> str:
+    """Hash Python source bytes and relative paths into one deterministic identity.
+
+    `exclude` names top-level subpackages left out of the identity.
+    """
     package_root = Path(root)
     digest = hashlib.sha256()
     for path in sorted(package_root.rglob("*.py")):
         if not path.is_file() or path.is_symlink():
+            continue
+        if path.relative_to(package_root).parts[0] in exclude:
             continue
         digest.update(path.relative_to(package_root).as_posix().encode("utf-8"))
         digest.update(b"\0")
@@ -91,8 +96,12 @@ def source_tree_sha256(root: str | Path) -> str:
 
 @lru_cache(maxsize=1)
 def analyzer_build_id() -> str:
-    """Package version plus the exact installed analyzer-source fingerprint."""
-    digest = source_tree_sha256(Path(__file__).resolve().parent)
+    """Package version plus the exact installed analyzer-source fingerprint.
+
+    The read-only viewer under `ui/` derives nothing, so editing it does not
+    invalidate derived stages.
+    """
+    digest = source_tree_sha256(Path(__file__).resolve().parent, exclude=("ui",))
     return f"{__version__}+source.{digest[:20]}"
 
 

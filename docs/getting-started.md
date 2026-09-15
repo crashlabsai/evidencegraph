@@ -58,6 +58,11 @@ uv run eg export cases/mine cases/mine-bundle
 uv run eg verify cases/mine-bundle --recompute
 ```
 
+To read the result in a browser instead of the terminal, start the read-only
+viewer with `uv run eg serve cases/mine --open`. It shows the same docket with every
+per-record outcome, resolves citations with their hashes re-verified, and lists the
+stages still to run; see [viewer.md](viewer.md).
+
 Try it first on a synthetic incident that ships with the repo:
 
 ```sh
