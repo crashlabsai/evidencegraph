@@ -32,10 +32,15 @@ spent USD 0.
 
 The nine reproduced defects in [critical-review.md](critical-review.md) are fixed on
 `main`; its closing section records what changed per finding and what remains.
-70 tests pass (53 prior plus regression tests converted from the review probes and a
-test of the documented recipe); lint, formatting and type checks pass. Both recorded
-cases under `docs/cases/`, the seed-7 registry incident and the wiki reconstruction,
-were regenerated with the fixed engine and their bundle hashes updated. The Mac Docker collection, a matched LLM comparison and independent
+At that pass, 70 tests passed (53 prior plus regression tests converted from the
+review probes and a test of the documented recipe); lint, formatting and type
+checks passed. Both recorded cases under `docs/cases/`, the seed-7 registry
+incident and the wiki reconstruction, were regenerated with the fixed engine and
+their bundle hashes updated.
+
+As of the current `main` tip, `uv run pytest -q -m 'not docker'` reports **88
+passed**, including the receipt-exclusivity stress coverage and the read-only
+viewer. The Mac Docker collection, a matched LLM comparison and independent
 review remain open.
 
 ## Release notes for maintainers

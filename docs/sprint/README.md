@@ -79,7 +79,8 @@ remains a draft even when all technical checks pass.
 ## What is new
 
 Before this work, EvidenceGraph already had native Inspect ingestion, a registry
-fixture, cited graphs, dockets, BagIt export, the public wiki audit and 70 tests.
+fixture, cited graphs, dockets, BagIt export, the public wiki audit and a 70-test
+suite (the public tree now has more).
 It also incorporated Crossledger code; [VENDORED.md](../../VENDORED.md) records that
 provenance. The new work is the complete-receipt counterexample, explicit
 token-exclusivity gate, upgrade invalidation, twelve-condition stress pack and
