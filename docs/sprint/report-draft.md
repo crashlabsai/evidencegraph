@@ -58,9 +58,9 @@ One copied receipt was enough to make the prototype attribute a real write to th
 
 ## Code and Data
 
-- Code repository (baseline before this work): [https://github.com/crashlabsai/evidencegraph](https://github.com/crashlabsai/evidencegraph)
-- Sprint extension, results, protocol and checklist: held by the author pending disclosure review; available on request.
-- Review pack: source snapshot, native evidence, synthetic private truth, generated cases and representative bundles, held with the extension and available on request.
+- Code repository: [https://github.com/crashlabsai/evidencegraph](https://github.com/crashlabsai/evidencegraph)
+- Sprint extension, results, protocol and checklist: [`docs/sprint/`](https://github.com/crashlabsai/evidencegraph/tree/main/docs/sprint) on the public repository (see especially [`RESULTS.md`](https://github.com/crashlabsai/evidencegraph/blob/main/docs/sprint/RESULTS.md), [`protocol.md`](https://github.com/crashlabsai/evidencegraph/blob/main/docs/sprint/protocol.md) and [`evidence-checklist.md`](https://github.com/crashlabsai/evidencegraph/blob/main/docs/sprint/evidence-checklist.md)).
+- Review materials: regenerate locally with the commands below (native evidence, synthetic private truth, generated cases and representative bundles are not committed; they are produced by the stress script).
 
 Reproduce with:
 
@@ -81,7 +81,7 @@ The generated `RESULTS.md` lists per-condition scores. Decisions and counts shou
 5. UK AI Security Institute (accessed 2026-09-14). Inspect: Log Viewer. Official documentation. [https://inspect.aisi.org.uk/log-viewer.html](https://inspect.aisi.org.uk/log-viewer.html)
 6. Meridian Labs (accessed 2026-09-14). Inspect Scout: Workflow. Official documentation. [https://meridianlabs-ai.github.io/inspect_scout/workflow.html](https://meridianlabs-ai.github.io/inspect_scout/workflow.html)
 7. Coalition for Secure AI (2025). Defending AI Systems: A New Framework for Incident Response. [https://www.coalitionforsecureai.org/defending-ai-systems-a-new-framework-for-incident-response-in-the-age-of-intelligent-technology/](https://www.coalitionforsecureai.org/defending-ai-systems-a-new-framework-for-incident-response-in-the-age-of-intelligent-technology/)
-8. CrashLabs (2026). Stress results, protocol, pre-change probe and provenance for this report. Unpublished development artifacts, available from the author on request.
+8. CrashLabs (2026). Stress results, protocol, pre-change probe and provenance for this report. [`docs/sprint/`](https://github.com/crashlabsai/evidencegraph/tree/main/docs/sprint) on the public EvidenceGraph repository.
 
 ## Appendix A. Limitations and Dual-Use Considerations
 
