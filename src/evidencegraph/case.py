@@ -143,6 +143,8 @@ def add_witness(
 
 def invalidate_derived(manifest: dict) -> None:
     manifest.pop("validation", None)
+    # Suggestions cite ingested spans; their recorded exchanges stay on disk for replay.
+    manifest.pop("suggestions", None)
     manifest["partitions"] = {
         k: v for k, v in manifest["partitions"].items() if k.startswith("ingest.")
     }

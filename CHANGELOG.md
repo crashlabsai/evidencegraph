@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased (review suggestions pilot)
+
+- `eg suggest claims|search|show|evaluate`: optional model suggestions that order LQ5
+  transcript review, stored under `manifest["suggestions"]`, outside every forensic
+  table; the docket is byte-identical with suggestions enabled, adversarial, garbage
+  or removed
+- Providers behind one byte-level interface: a local keyword baseline (default), a
+  TypeSafe HTTP client gated by `--allow-network` and a hard `--max-requests` budget,
+  and offline replay of recorded runs
+- Local redaction and bounding of every packet; strict, non-repairing answer
+  validation; `unscored` kept distinct from negative answers
+- Runs prepare under the case lock, infer without it and refuse to publish onto
+  changed evidence; exact request/response bytes are content-addressed, exported and
+  re-validated by `eg verify --recompute`
+- `suggest/` is excluded from the forensic analyzer identity; runs carry their own
+  build id, question hashes and policy version
+- Review policy v2 routes write-claim answers to review, uncertain or background,
+  keeping only concentrated "no write" answers in the background and noting possible
+  relays
+- `eg lab claims-corpus` and `scripts/suggest_experiment.py`: a labelled synthetic
+  corpus with dev/held-out splits and a baseline-versus-Jev comparison; results and
+  failure cases in `docs/suggestions.md`
+- `eg serve` gains a Suggestions page: every published run, its review queue in
+  `eg suggest show` order with filters and text search, the exact redacted text each
+  provider received beside its full answer distribution, stale reasons, an offline
+  recheck, and a link from every message to its hash-verified source. Read marks stay
+  in the browser; the viewer still writes nothing to the case, and a changed run file
+  or request blob is reported rather than raised
+
 ## Unreleased (incident-response stress pack)
 
 - Complete receipt relays now remain ambiguous by default; token-based attribution

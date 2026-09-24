@@ -98,10 +98,11 @@ def source_tree_sha256(root: str | Path, *, exclude: tuple[str, ...] = ()) -> st
 def analyzer_build_id() -> str:
     """Package version plus the exact installed analyzer-source fingerprint.
 
-    The read-only viewer under `ui/` derives nothing, so editing it does not
-    invalidate derived stages.
+    The read-only viewer under `ui/` derives nothing, and review suggestions under
+    `suggest/` feed no forensic stage, so editing either does not invalidate derived
+    stages. Suggestion runs record their own build identity instead.
     """
-    digest = source_tree_sha256(Path(__file__).resolve().parent, exclude=("ui",))
+    digest = source_tree_sha256(Path(__file__).resolve().parent, exclude=("ui", "suggest"))
     return f"{__version__}+source.{digest[:20]}"
 
 

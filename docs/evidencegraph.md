@@ -137,6 +137,14 @@ exposure as a completed answer. The offline Scout control deliberately repeats w
 claims and must fail on injected spoofed events. These are engineering controls,
 not a performance estimate for any real model or a claim of real-world robustness.
 
+## Review suggestions
+
+Model suggestions (`eg suggest`) are stored under `manifest["suggestions"]`, never in
+graph partitions, and no forensic module imports them. They classify or rank what
+cited messages say; they never set an outcome, narrow a reconciliation candidate set,
+change a coverage population or promote a claim. Re-ingesting drops them. Publishing
+them invalidates nothing. See [suggestions.md](suggestions.md).
+
 ## What remains outside this release
 
 - Real Mac Docker launch/job/host-clock validation and publication of the additional
