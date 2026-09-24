@@ -5,12 +5,17 @@ import threading
 import urllib.error
 import urllib.request
 from typing import Any
+from urllib.parse import quote
 
 import pytest
+from test_lab_stage import load_stage
 
 from evidencegraph.docket.render import render
 from evidencegraph.export.bagit import export_bundle
+from evidencegraph.lab.stage import construct_stage
 from evidencegraph.manifest import read_manifest
+from evidencegraph.suggest.providers import LexicalBaseline
+from evidencegraph.suggest.run import run_key, run_suggestions, show
 from evidencegraph.ui.server import CaseView, make_server, resolve_root
 
 
@@ -67,7 +72,10 @@ def test_shell_static_files_and_case_summary(viewer):
     assert "reconcile registry" not in steps and not steps["reconcile wiki-saves"]["done"]
     assert steps["reconcile wiki-saves"]["command"].endswith("--substrate wiki-saves")
     assert list(steps)[2:6] == ["facts", "identity", "lineage", "reconcile wiki-saves"]
-    assert {s["step"] for s in summary["optional"]} == {"scan", "validate"}
+    optional = {s["step"]: s for s in summary["optional"]}
+    assert set(optional) == {"scan", "validate", "suggest"}
+    # Suggestions read Inspect transcripts, which a wiki export does not have.
+    assert optional["suggest"]["applicable"] is False and not optional["suggest"]["done"]
 
 
 def test_pipeline_marks_reconciliation_done_only_for_the_applicable_substrate(viewer, wiki_case):
@@ -258,3 +266,134 @@ def test_viewer_source_is_not_part_of_the_analyzer_identity(tmp_path):
     assert source_tree_sha256(tree) != before
     (tree / "engine.py").write_text("RULE = 2\n")
     assert source_tree_sha256(tree, exclude=("ui",)) != before
+
+
+@pytest.fixture
+def incident_case(tmp_path):
+    stage = tmp_path / "stage"
+    case = tmp_path / "case"
+    construct_stage(stage, seed=3, spoof="B:2", drop=["A"])
+    load_stage(case, stage)
+    render(case)
+    return case
+
+
+def suggest_baselines(case):
+    run_suggestions(
+        case, task="write-claims", provider=LexicalBaseline(), model="baseline-lexical-1"
+    )
+    run_suggestions(
+        case, task="search", query="receipt", provider=LexicalBaseline(), model="baseline-lexical-1"
+    )
+    return "write-claims:baseline", run_key("search", "baseline", "receipt")
+
+
+def forensic_views(base) -> dict:
+    return {
+        path: call(base + path)[1]
+        for path in ("/api/docket", "/api/relations?limit=1000", "/api/entities?limit=1000")
+    }
+
+
+def test_suggestion_queue_matches_show_and_leaves_forensic_views_unchanged(incident_case):
+    server, base = start(incident_case)
+    try:
+        status, empty = call(base + "/api/suggestions")
+        assert status == 200 and empty["runs"] == []
+        assert empty["commands"][0]["command"] == f"eg suggest claims {incident_case}"
+        before = forensic_views(base)
+        claims, search = suggest_baselines(incident_case)
+        assert forensic_views(base) == before
+        published = (incident_case / "manifest.json").read_bytes()
+
+        status, listing = call(base + "/api/suggestions")
+        runs = {run["run_key"]: run for run in listing["runs"]}
+        assert status == 200 and set(runs) == {claims, search}
+        assert runs[search]["query"] == "receipt" and "not evidence" in listing["interpretation"]
+        run = runs[claims]
+        assert run["healthy"] and run["stale"] == [] and run["provider"] == "baseline"
+        assert sum(run["dispositions"].values()) == run["total"] > 0
+        assert set(listing["meanings"]["write-claims"]) == set(listing["disposition_order"])
+
+        status, queue = call(base + f"/api/suggestions/{quote(claims)}?limit=1000")
+        assert status == 200 and queue["total"] == queue["run_total"] == run["total"]
+        # The same order `eg suggest show` prints, every row a published message citation
+        # with its full distribution and the exact text the provider was sent.
+        shown = show(incident_case, claims, limit=1000)["suggestions"]
+        assert [row["span_id"] for row in queue["rows"]] == [s["span_id"] for s in shown]
+        assert [row["rank"] for row in queue["rows"]] == list(range(1, run["total"] + 1))
+        criteria = set(queue["questions"]["write_claim"]["criteria"])
+        for row in queue["rows"]:
+            assert queue["citation_index"][row["span_id"]]["locator_kind"] == "message"
+            assert row["message"]["role"] == row["role"] and row["message_error"] is None
+            assert set(row["answers"]["write_claim"]["probabilities"]) == criteria
+
+        status, review = call(base + f"/api/suggestions/{quote(claims)}?disposition=review")
+        assert review["total"] == run["dispositions"]["review"] > 0
+        assert {row["disposition"] for row in review["rows"]} == {"review"}
+        # A filter hides rows; it never renumbers the queue.
+        assert [row["rank"] for row in review["rows"]] == [
+            row["rank"] for row in queue["rows"] if row["disposition"] == "review"
+        ]
+        status, found = call(base + f"/api/suggestions/{quote(claims)}?q=RECEIPT")
+        assert 0 < found["total"] < queue["total"]
+        assert all("receipt" in json.dumps(row["message"]).lower() for row in found["rows"])
+        status, paged = call(base + f"/api/suggestions/{quote(claims)}?limit=2&offset=2")
+        assert [row["rank"] for row in paged["rows"]] == [3, 4] and paged["total"] == run["total"]
+
+        status, checked = call(base + f"/api/suggestions/{quote(claims)}/recheck")
+        assert status == 200 and checked["result"] == "reproduced"
+        assert call(base + "/api/suggestions/write-claims:unknown")[0] == 404
+        steps = {s["step"]: s for s in call(base + "/api/case")[1]["optional"]}
+        assert steps["suggest"]["done"] and steps["suggest"]["applicable"]
+        # Reading suggestions never writes to the case.
+        assert (incident_case / "manifest.json").read_bytes() == published
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_changed_suggestion_files_are_reported_not_raised(incident_case, monkeypatch):
+    claims, search = suggest_baselines(incident_case)
+    view = CaseView(incident_case)
+    monkeypatch.setattr("evidencegraph.suggest.run.POLICY_VERSION", "next")
+    runs = {run["run_key"]: run for run in view.suggestions()["runs"]}
+    assert runs[claims]["stale"] == ["review policy changed since this run"]
+    monkeypatch.undo()
+
+    # A changed request blob withholds only the rows that sent it.
+    row = view.suggestion_queue(claims, {})["rows"][0]
+    blob = incident_case / "suggest" / "blobs" / row["request_sha256"]
+    blob.write_bytes(blob.read_bytes() + b" ")
+    rows = view.suggestion_queue(claims, {"limit": "1000"})["rows"]
+    broken = [r for r in rows if r["request_sha256"] == row["request_sha256"]]
+    assert broken and all(r["message"] is None for r in broken)
+    assert "failed its hash check" in broken[0]["message_error"]
+    assert all(r["message"] for r in rows if r["request_sha256"] != row["request_sha256"])
+
+    # A changed run file makes that run unreadable, and the others still list.
+    entry = read_manifest(incident_case)["suggestions"][search]
+    path = incident_case / entry["suggestions"]
+    path.write_text(path.read_text() + "\n")
+    runs = {run["run_key"]: run for run in view.suggestions()["runs"]}
+    assert runs[claims]["healthy"] and not runs[search]["healthy"]
+    assert "changed since publication" in runs[search]["error"]
+    server, base = start(incident_case)
+    try:
+        status, error = call(base + f"/api/suggestions/{quote(search)}")
+        assert status == 400 and "changed since publication" in error["error"]
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_bundled_suggestions_are_readable_and_offer_no_commands(incident_case, tmp_path):
+    claims, _ = suggest_baselines(incident_case)
+    bundle = tmp_path / "bundle"
+    export_bundle(incident_case, bundle)
+    view = CaseView(bundle / "data", bundle=True)
+    listing = view.suggestions()
+    assert listing["commands"] == [] and all(run["healthy"] for run in listing["runs"])
+    queue = view.suggestion_queue(claims, {})
+    assert queue["rows"] and all(row["message"] for row in queue["rows"])
+    assert view.suggestion_recheck(claims)["result"] == "reproduced"

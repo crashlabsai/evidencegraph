@@ -23,7 +23,7 @@ const STATUS_CLASSES = {
 };
 const GLYPHS = { good: '✓', warning: '?', critical: '✕', serious: '∅', neutral: '–' };
 
-const state = { caseInfo: null, title: 'Evidencegraph' };
+const state = { caseInfo: null, title: 'Evidencegraph', keys: null };
 
 /* ---------- DOM helpers ---------- */
 function h(tag, attrs, ...children) {
@@ -332,6 +332,7 @@ function navigate(path, params) {
 let navigation = 0;
 function startPage(title, route) {
   document.title = `${title} · ${state.title}`;
+  state.keys = null;
   for (const link of document.querySelectorAll('.nav a')) link.classList.toggle('active', link.dataset.route === route);
   // A page renders into its own container. When a later navigation replaces it, a
   // slow handler for the earlier page keeps rendering into a detached element.
@@ -347,6 +348,8 @@ const ROUTES = [
   [/^\/relations$/, (m, params) => pageRelations(params)],
   [/^\/entities$/, (m, params) => pageEntities(params)],
   [/^\/entities\/([^/]+)$/, m => pageEntity(decodeURIComponent(m[1]))],
+  [/^\/suggestions$/, (m, params) => pageSuggestions(null, params)],
+  [/^\/suggestions\/([^/]+)$/, (m, params) => pageSuggestions(decodeURIComponent(m[1]), params)],
   [/^\/query$/, () => pageQuery()],
   [/^\/case$/, () => pageCase()],
   [/^\/cite\/([^/]+)$/, async m => { const token = navigation; await pageDocket(); if (token === navigation) openCitation(decodeURIComponent(m[1])); }],
@@ -886,6 +889,480 @@ function download(name, content, type) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/* ---------- suggestions ---------- */
+/* A review aid, not evidence. Reading priority is ordinal, so dispositions wear one blue
+   ramp and a shape, never the status colours reserved for forensic outcomes. */
+const PROVIDERS = { baseline: 'baseline', typesafe: 'TypeSafe', replay: 'replayed offline' };
+
+function fmtWhen(iso) {
+  if (!iso) return '—';
+  return iso.slice(0, 16).replace('T', ' ') + (/(\+00:00|Z)$/.test(iso) ? ' UTC' : '');
+}
+function fmt2(value) { return value == null ? '—' : Number(value).toFixed(2); }
+function shellQuote(value) { return "'" + String(value).replace(/'/g, "'\\''") + "'"; }
+function modelName(run) {
+  return (run.resolved_models && run.resolved_models.length ? run.resolved_models : [run.requested_model]).join(', ');
+}
+function prettyJson(raw) {
+  try { return JSON.stringify(JSON.parse(raw), null, 2); } catch { return raw; }
+}
+function dot(disposition) { return h('span', { class: `sg-dot d-${disposition}`, 'aria-hidden': 'true' }); }
+function dispositionPill(disposition, meanings) {
+  return h('span', { class: 'sg-pill', title: (meanings && meanings[disposition]) || '' }, dot(disposition), disposition);
+}
+function dispositionStrip(counts, order) {
+  const total = order.reduce((sum, d) => sum + (counts[d] || 0), 0);
+  const present = order.filter(d => counts[d]);
+  return h('div', { class: 'strip sg-strip', role: 'img', 'aria-label': present.map(d => `${counts[d]} ${d}`).join(', ') },
+    present.map(d => h('div', { class: `seg d-${d}`, style: { flexGrow: String(counts[d]) }, title: `${d}: ${fmtInt(counts[d])} of ${fmtInt(total)}` })));
+}
+function meter(fraction, label) {
+  const f = Math.max(0, Math.min(1, fraction || 0));
+  return h('span', { class: 'sg-meter', role: 'img', 'aria-label': label || '' }, h('span', { style: { width: (f * 100).toFixed(1) + '%' } }));
+}
+function kbd(key) { return h('kbd', null, key); }
+
+/* Read marks live in this browser only; the viewer never writes to the case. */
+function readStore(runId) {
+  const key = 'eg.read.' + runId;
+  let marks = {};
+  try { marks = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch { marks = {}; }
+  return {
+    has: (id) => Object.prototype.hasOwnProperty.call(marks, id),
+    toggle(id, disposition) {
+      if (this.has(id)) delete marks[id]; else marks[id] = disposition;
+      localStorage.setItem(key, JSON.stringify(marks));
+    },
+    count: (disposition) => Object.values(marks).filter(v => !disposition || v === disposition).length,
+  };
+}
+
+async function pageSuggestions(key, params) {
+  const main = startPage('Suggestions', 'suggestions');
+  const token = navigation;
+  const data = await api('/api/suggestions');
+  clear(main);
+  main.append(h('header', { class: 'page-head' }, h('div', null,
+    h('p', { class: 'kicker' }, 'Review aid'),
+    h('h1', null, 'Review suggestions'),
+    h('p', { class: 'muted lede' }, 'A decision model’s answers about what each cited transcript message says, ordered so the messages most worth reading come first. Open one to see exactly what the model was sent and every probability it returned.'))));
+  main.append(h('aside', { class: 'sg-boundary', 'aria-label': 'What suggestions are' },
+    h('span', { class: 'sg-boundary-tag' }, 'Not evidence'),
+    h('div', null, data.interpretation, ' ', h('span', { class: 'muted' }, 'Open a message’s source to read its hash-verified bytes.'))));
+  if (!data.runs.length) { main.append(suggestEmpty(data)); return; }
+  // Without a choice, open the current model run for write claims before a baseline or a search.
+  const preference = (r) => [r.stale.length ? 1 : 0, r.task === 'write-claims' ? 0 : 1, r.provider === 'baseline' ? 1 : 0];
+  const healthy = data.runs.filter(r => r.healthy).sort((a, b) => {
+    const x = preference(a), y = preference(b);
+    const i = x.findIndex((v, n) => v !== y[n]);
+    return i >= 0 ? x[i] - y[i] : b.completed_at.localeCompare(a.completed_at);
+  });
+  const stored = localStorage.getItem('eg.suggestRun');
+  const known = key && data.runs.find(r => r.run_key === key);
+  const selected = known || (key ? null : healthy.find(r => r.run_key === stored) || healthy[0]);
+  main.append(runPicker(data, selected && selected.run_key));
+  if (!selected) {
+    main.append(key
+      ? callout('warning', 'No such run', h('p', { class: 'small' }, `No published suggestion run is named ${key}. Pick one above.`))
+      : callout('critical', 'No readable run', h('p', { class: 'small' }, 'Every published run has files that changed since publication.')));
+    return;
+  }
+  if (!selected.healthy) {
+    main.append(callout('critical', 'This run cannot be shown', h('p', { class: 'small' }, selected.error)));
+    return;
+  }
+  localStorage.setItem('eg.suggestRun', selected.run_key);
+  if (!key && token === navigation) {
+    const query = new URLSearchParams(params).toString();
+    history.replaceState(null, '', '#/suggestions/' + encodeURIComponent(selected.run_key) + (query ? '?' + query : ''));
+  }
+  await suggestionRun(main, selected, data, params, token);
+}
+
+function suggestEmpty(data) {
+  const box = h('div', { class: 'empty sg-empty' },
+    h('h2', null, 'No suggestion runs published'),
+    h('p', null, 'Suggestions are optional. The viewer reads published runs; it never contacts a model.'));
+  if (!data.commands.length) {
+    box.append(h('p', { class: 'small muted' }, 'This exported bundle carries no suggestion runs.'));
+    return box;
+  }
+  box.append(h('div', { class: 'sg-commands' }, data.commands.map(c => h('div', { class: 'sg-command' },
+    h('div', { class: 'small muted' }, c.title),
+    h('pre', { class: 'wrap' }, c.command),
+    h('div', null, copyButton(c.command, 'copy command'))))));
+  box.append(h('p', { class: 'small muted' }, 'TypeSafe runs also need TYPESAFE_API_KEY in the environment. See docs/suggestions.md for the boundaries enforced in code.'));
+  return box;
+}
+
+function runPicker(data, selected) {
+  const groups = [
+    ['write-claims', 'Write claims', 'What each message says about a write'],
+    ['search', 'Searches', 'Every message ranked for an investigator’s question'],
+  ];
+  const wrap = h('section', { class: 'sg-runs', 'aria-label': 'Suggestion runs' });
+  const other = data.runs.filter(r => !groups.some(([task]) => task === r.task));
+  for (const [task, title, sub] of [...groups, ['', 'Other runs', '']]) {
+    const runs = task ? data.runs.filter(r => r.task === task) : other;
+    if (!runs.length) continue;
+    wrap.append(h('div', { class: 'sg-run-group' },
+      h('div', { class: 'sg-group-head' }, h('span', { class: 'sg-group-title' }, title), sub ? text('dim small', sub) : null),
+      h('div', { class: 'sg-run-grid' }, runs.map(r => runCard(r, r.run_key === selected, data)))));
+  }
+  return wrap;
+}
+
+function runCard(run, active, data) {
+  if (!run.healthy) {
+    return h('div', { class: 'sg-run broken', title: run.error },
+      h('div', { class: 'sg-run-top' }, h('span', { class: 'sg-run-model mono' }, run.run_key)),
+      h('div', { class: 'small no' }, '✕ Files changed since publication'),
+      h('div', { class: 'tiny dim sg-run-error' }, run.error));
+  }
+  const counts = run.dispositions;
+  return h('a', { class: `sg-run${active ? ' active' : ''}`, href: '#/suggestions/' + encodeURIComponent(run.run_key), 'aria-current': active ? 'true' : null, title: run.run_key },
+    h('div', { class: 'sg-run-top' },
+      h('span', { class: 'sg-run-model', title: modelName(run) }, modelName(run)),
+      h('span', { class: 'chip' }, PROVIDERS[run.provider] || run.provider),
+      run.stale.length ? h('span', { class: 'badge warning', title: run.stale.join('\n') }, text('glyph', '?'), 'stale') : null),
+    run.query ? h('div', { class: 'sg-run-query' }, `“${run.query}”`) : null,
+    dispositionStrip(counts, data.disposition_order),
+    h('div', { class: 'sg-run-counts' }, data.disposition_order.filter(d => counts[d]).map(d => h('span', null, dot(d), h('b', null, fmtInt(counts[d])), ` ${d}`))),
+    h('div', { class: 'tiny dim' }, `${fmtInt(run.total)} messages · ${fmtWhen(run.completed_at)}`));
+}
+
+function fetchQueue(key, params) {
+  const query = new URLSearchParams(params).toString();
+  return api('/api/suggestions/' + encodeURIComponent(key) + (query ? '?' + query : ''));
+}
+
+async function suggestionRun(main, summary, data, params, token) {
+  const key = summary.run_key;
+  const reads = readStore(summary.run_id);
+  let current = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v != null));
+  let q = await fetchQueue(key, current);
+  if (token !== navigation) return;
+  const order = data.disposition_order;
+  const counts = Object.fromEntries(q.facets.disposition.map(f => [f.value, f.n]));
+
+  const progress = h('div', { class: 'sg-progress', title: 'Marked in this browser only. Nothing is written to the case.' });
+  const updateProgress = () => {
+    const read = reads.count();
+    const review = counts.review || 0;
+    append(clear(progress), [h('span', null, `Read ${fmtInt(read)} of ${fmtInt(q.run_total)}`),
+      meter(q.run_total ? read / q.run_total : 0, `${read} of ${q.run_total} read`),
+      review ? text('dim', `${fmtInt(reads.count('review'))} of ${fmtInt(review)} in review`) : null]);
+  };
+  main.append(runHead(q, data, counts, progress));
+  updateProgress();
+
+  const tabButtons = [['', 'All', q.run_total], ...order.map(d => [d, titleCase(d), counts[d] || 0])].map(([value, label, n]) =>
+    h('button', { type: 'button', class: 'sg-tab', role: 'tab', 'data-value': value, disabled: value && !n ? true : null, onclick: () => apply({ ...current, disposition: value, offset: '' }) },
+      value ? dot(value) : null, label, h('span', { class: 'n' }, fmtInt(n))));
+  const choose = (name, all, rows, format) => h('select', { class: 'plain', 'aria-label': all, onchange: (ev) => apply({ ...current, [name]: ev.target.value, offset: '' }) },
+    h('option', { value: '' }, all),
+    rows.map(f => h('option', { value: f.value, selected: current[name] === f.value || null }, `${format ? format(f.value) : f.value} (${fmtInt(f.n)})`)));
+  const search = h('input', { type: 'search', class: 'plain sg-search', placeholder: 'Search message text…', value: current.q || '', 'aria-label': 'Search message text' });
+  let typing = null;
+  search.addEventListener('input', () => { clearTimeout(typing); typing = setTimeout(() => apply({ ...current, q: search.value.trim(), offset: '' }), 250); });
+  main.append(h('div', { class: 'sg-controls' },
+    h('div', { class: 'sg-tabs', role: 'tablist', 'aria-label': 'Disposition' }, tabButtons),
+    h('div', { class: 'sg-filters' },
+      choose('label', q.run.task === 'search' ? 'Any relevance' : 'Any answer', q.facets.label, v => answerName(v, q)),
+      choose('role', 'Any role', q.facets.role),
+      choose('transcript', 'Any transcript', q.facets.transcript),
+      search)));
+  const status = h('div', { class: 'sg-status' });
+  const listWrap = h('div', { class: 'sg-queue-wrap' });
+  main.append(status, listWrap);
+
+  let requests = 0;
+  async function apply(next) {
+    current = Object.fromEntries(Object.entries(next).filter(([, v]) => v !== '' && v != null));
+    const ticket = ++requests;
+    listWrap.classList.add('loading');
+    try {
+      const fresh = await fetchQueue(key, current);
+      if (ticket !== requests || token !== navigation) return;
+      // The key was re-published as a different run: its read marks and counts no longer apply.
+      if (fresh.run.run_id !== summary.run_id) { route(); return; }
+      q = fresh;
+      const query = new URLSearchParams(current).toString();
+      history.replaceState(null, '', '#/suggestions/' + encodeURIComponent(key) + (query ? '?' + query : ''));
+      renderList();
+    } catch (error) {
+      if (ticket === requests) clear(listWrap).append(errorBox(error));
+    } finally {
+      if (ticket === requests) listWrap.classList.remove('loading');
+    }
+  }
+  function renderList() {
+    for (const button of tabButtons) {
+      const active = (current.disposition || '') === button.dataset.value;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-selected', String(active));
+    }
+    const from = q.total ? q.offset + 1 : 0;
+    const to = q.offset + q.rows.length;
+    clear(status).append(
+      h('span', null, q.total === q.run_total ? `${fmtInt(q.total)} messages` : `${fmtInt(q.total)} of ${fmtInt(q.run_total)} messages`,
+        q.total > q.rows.length ? ` · ${fmtInt(from)}–${fmtInt(to)}` : '', text('dim', ' · in the order eg suggest show prints')),
+      h('span', { class: 'sg-keys' }, kbd('j'), kbd('k'), ' move ', kbd('Enter'), ' open ', kbd('x'), ' read ', kbd('s'), ' source'));
+    clear(listWrap);
+    if (!q.rows.length) {
+      listWrap.append(emptyState('Nothing matches', 'Loosen the filters. Every message in scope stays in the queue; a filter only hides it from this view.'));
+      return;
+    }
+    listWrap.append(h('ol', { class: 'sg-queue' }, q.rows.map(row => queueItem(row, q, reads, updateProgress))));
+    if (q.total > q.limit) {
+      const go = (offset) => { apply({ ...current, offset: String(offset) }); status.scrollIntoView({ block: 'nearest' }); };
+      listWrap.append(h('div', { class: 'pager' },
+        h('button', { class: 'btn small', type: 'button', disabled: q.offset === 0 || null, onclick: () => go(Math.max(0, q.offset - q.limit)) }, '‹ Previous'),
+        text('num', `${fmtInt(from)}–${fmtInt(to)} of ${fmtInt(q.total)}`),
+        h('button', { class: 'btn small', type: 'button', disabled: to >= q.total || null, onclick: () => go(q.offset + q.limit) }, 'Next ›')));
+    }
+  }
+  renderList();
+
+  state.keys = (ev) => {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey || !$('#drawer').hidden) return;
+    if (/^(INPUT|SELECT|TEXTAREA)$/.test(ev.target.tagName)) return;
+    const items = [...main.querySelectorAll('.sg-item')];
+    if (!items.length) return;
+    const focused = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.sg-item') : null;
+    const index = items.indexOf(focused);
+    const focus = (i) => {
+      const target = items[Math.max(0, Math.min(items.length - 1, i))];
+      target.querySelector('summary').focus();
+      target.scrollIntoView({ block: 'nearest' });
+    };
+    if (ev.key === 'j') { ev.preventDefault(); focus(index + 1); }
+    else if (ev.key === 'k') { ev.preventDefault(); focus(index < 0 ? 0 : index - 1); }
+    else if (ev.key === 'x' && focused) { ev.preventDefault(); focused.toggleRead(); }
+    else if (ev.key === 's' && focused) { ev.preventDefault(); openCitation(focused.dataset.span); }
+  };
+}
+
+function answerName(value, q) {
+  const question = q.questions && q.questions[q.primary];
+  if (question && Array.isArray(question.criteria) && /^\d+$/.test(value)) return `${value} · ${question.criteria[Number(value)] || ''}`;
+  return titleCase(value);
+}
+function scoreMax(q, key, answer) {
+  const question = q.questions && q.questions[key];
+  if (question && Array.isArray(question.criteria)) return question.criteria.length - 1;
+  return Math.max(1, Object.keys((answer && answer.probabilities) || {}).length - 1);
+}
+
+function runHead(q, data, counts, progress) {
+  const run = q.run;
+  const search = run.task === 'search';
+  const result = h('span', { class: 'sg-recheck' });
+  const button = h('button', {
+    type: 'button', class: 'btn small', title: 'Re-validate every recorded response and re-derive each disposition offline, as eg verify --recompute does. Contacts no provider.',
+    onclick: async () => {
+      button.disabled = true;
+      button.textContent = 'Rechecking…';
+      try {
+        const checked = await api(`/api/suggestions/${encodeURIComponent(q.run_key)}/recheck`);
+        clear(result).append(checked.result === 'reproduced'
+          ? h('span', { class: 'badge good', title: 'Every recorded response re-validated and every disposition re-derived, offline' }, text('glyph', '✓'), 'reproduced')
+          : h('span', { class: 'small muted' }, '? ', checked.result));
+      } catch (error) {
+        clear(result).append(h('span', { class: 'small no' }, '✕ ', error.message));
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Recheck recorded answers';
+      }
+    },
+  }, 'Recheck recorded answers');
+
+  let stale = null;
+  if (q.stale.length) {
+    const root = state.caseInfo ? state.caseInfo.root : 'CASE';
+    const command = `eg suggest ${search ? `search ${root} ${shellQuote(run.query)}` : `claims ${root}`} --provider replay --from-run ${run.run_id}`;
+    stale = callout('warning', 'This run is stale',
+      h('ul', null, q.stale.map(reason => h('li', null, reason))),
+      state.caseInfo && state.caseInfo.bundle ? null : [
+        h('p', { class: 'small' }, 'Replay re-derives dispositions from the recorded answers when only the review policy or suggestion code changed. Changed evidence or question wording needs a new run.'),
+        h('pre', { class: 'wrap' }, command), h('p', { class: 'small' }, copyButton(command, 'copy command'))]);
+  }
+  const record = {
+    run_key: q.run_key, run_id: run.run_id, provider: run.provider, endpoint: run.endpoint,
+    requested_model: run.requested_model, resolved_models: run.resolved_models,
+    started_at: run.started_at, completed_at: run.completed_at,
+    questions: run.questions,
+    versions: `packet ${run.packet_version} · redaction ${run.redaction_version} · policy ${run.policy_version}`,
+    scope: run.scope, usage: run.usage,
+    input_fingerprint: run.input_fingerprint, analyzer_build_id: run.analyzer_build_id, suggest_build_id: run.suggest_build_id,
+  };
+  return h('section', { class: 'sg-head' },
+    h('div', { class: 'sg-head-top' },
+      h('div', { class: 'sg-head-title' },
+        h('div', { class: 'kicker' }, search ? 'Search' : 'Write claims', ` · helps review ${run.docket_question} · policy v${run.policy_version}`),
+        h('h2', null, search ? `“${run.query}”` : 'What each message says about a write'),
+        h('div', { class: 'sg-head-meta' },
+          h('span', { class: 'sg-run-model' }, modelName(run)),
+          h('span', { class: 'chip' }, PROVIDERS[run.provider] || run.provider),
+          text('muted small', `${fmtInt(q.run_total)} messages from ${fmtInt(run.scope.transcripts || 0)} transcripts · ${fmtWhen(run.completed_at)}`))),
+      h('div', { class: 'sg-head-actions' }, button, result)),
+    dispositionStrip(counts, data.disposition_order),
+    h('div', { class: 'sg-legend' },
+      data.disposition_order.map(d => h('span', { class: `sg-legend-item${counts[d] ? '' : ' zero'}`, title: q.meanings[d] || '' }, dot(d), h('b', null, fmtInt(counts[d] || 0)), ` ${d}`)),
+      progress),
+    stale,
+    h('div', { class: 'sg-disclosures' },
+      h('details', { class: 'sg-disclosure' }, h('summary', null, 'How this queue is ordered'),
+        h('dl', { class: 'sg-meanings' }, data.disposition_order.map(d => [h('dt', null, dot(d), d), h('dd', null, q.meanings[d] || '')])),
+        h('p', { class: 'small muted' }, search
+          ? 'Messages are ranked by expected relevance. Ranking is not completeness: nothing is dropped.'
+          : 'Within each disposition, messages are ordered by expected write relevance, then transcript and position.')),
+      h('details', { class: 'sg-disclosure' }, h('summary', null, 'Run record'), kvTable(record, {}))));
+}
+
+function queueItem(row, q, reads, onRead) {
+  const item = h('details', { class: `sg-item d-${row.disposition}`, 'data-span': row.span_id });
+  const readButton = h('button', { type: 'button', class: 'sg-rank', title: 'Mark as read (x). Stored in this browser only, never in the case.', onclick: (ev) => { ev.preventDefault(); ev.stopPropagation(); toggle(); } });
+  let detailRead = null;
+  function paint() {
+    const read = reads.has(row.span_id);
+    item.classList.toggle('read', read);
+    readButton.setAttribute('aria-pressed', String(read));
+    readButton.setAttribute('aria-label', `${read ? 'Unmark' : 'Mark'} message ${row.rank} as read`);
+    readButton.textContent = read ? '✓' : String(row.rank);
+    if (detailRead) detailRead.textContent = read ? 'Mark unread' : 'Mark as read';
+  }
+  function toggle() { reads.toggle(row.span_id, row.disposition); paint(); onRead(); }
+  item.toggleRead = toggle;
+  const m = row.message;
+  item.append(h('summary', null,
+    readButton,
+    h('div', { class: 'sg-main' },
+      h('div', { class: 'sg-meta' },
+        dispositionPill(row.disposition, q.meanings),
+        h('span', { class: 'sg-role' }, row.role, m && m.tool_function ? text('dim', ` · ${m.tool_function}`) : null),
+        h('span', { class: 'mono' }, row.transcript_id),
+        text('dim', `message ${row.position}`),
+        row.truncated ? h('span', { class: 'chip', title: 'Clipped before sending' }, 'clipped') : null,
+        row.redactions ? h('span', { class: 'chip', title: 'Values redacted locally before sending' }, `${row.redactions} redacted`) : null),
+      h('div', { class: 'sg-excerpt' }, excerptOf(row)),
+      h('div', { class: 'sg-reason' }, row.reason)),
+    answerSummary(row, q)));
+  paint();
+  let built = false;
+  item.addEventListener('toggle', () => {
+    if (!item.open || built) return;
+    built = true;
+    detailRead = h('button', { type: 'button', class: 'btn small', onclick: toggle });
+    paint();
+    item.append(h('div', { class: 'sg-detail' },
+      h('div', { class: 'sg-detail-grid' },
+        h('section', null, h('h4', null, 'Sent to the model'), sentView(row, q)),
+        h('section', null, Object.entries(row.answers).map(([key, answer]) => answerView(key, answer, q)))),
+      h('div', { class: 'sg-why' }, dispositionPill(row.disposition, q.meanings),
+        h('div', null, h('div', null, q.meanings[row.disposition] || ''), h('div', { class: 'small muted' }, 'This message: ', row.reason))),
+      h('div', { class: 'sg-actions' },
+        h('button', { type: 'button', class: 'btn small primary', onclick: () => openCitation(row.span_id) }, '¶ Open verified source'),
+        detailRead,
+        text('tiny dim', citeLabel(row.span_id, { citations: q.citation_index, witnesses: q.witness_index })),
+        h('span', { class: 'sg-spacer' }),
+        h('span', { class: 'tiny dim' }, 'model ', mono(row.resolved_model || '—'), ' · request ', hashSpan(row.request_sha256)))));
+  });
+  return h('li', null, item);
+}
+
+function excerptOf(row) {
+  const m = row.message;
+  if (!m) return text('no', '✕ ' + (row.message_error || 'recorded request unavailable'));
+  const calls = (m.tool_calls || []).map(c => h('span', { class: 'sg-callchip mono' },
+    `${c.function}(${c.arguments.length > 72 ? c.arguments.slice(0, 72) + '…' : c.arguments})`));
+  return [
+    m.text ? h('span', null, m.text.slice(0, 480)) : null,
+    calls,
+    m.tool_error ? text('no', ` tool error: ${m.tool_error.slice(0, 160)}`) : null,
+  ];
+}
+
+function answerSummary(row, q) {
+  const answer = row.answers[q.primary];
+  if (!answer || answer.status !== 'answered') {
+    return h('div', { class: 'sg-answer' }, h('div', { class: 'lbl' }, answer ? titleCase(answer.status) : 'No answer'),
+      h('div', { class: 'tiny dim' }, 'unscored, not a negative answer'));
+  }
+  if (q.run.task === 'search') {
+    const max = scoreMax(q, q.primary, answer);
+    return h('div', { class: 'sg-answer' },
+      h('div', { class: 'lbl' }, 'Relevance'),
+      h('div', { class: 'sg-answer-meter' }, meter(answer.value / max, `expected relevance ${fmt2(answer.value)} of ${max}`), h('span', { class: 'num' }, `${fmt2(answer.value)} / ${max}`)),
+      h('div', { class: 'tiny dim' }, `confidence ${fmt2(answer.confidence)}`));
+  }
+  const mass = q.write_statements.reduce((sum, k) => sum + ((answer.probabilities || {})[k] || 0), 0);
+  return h('div', { class: 'sg-answer' },
+    h('div', { class: 'lbl' }, titleCase(answer.label)),
+    h('div', { class: 'sg-answer-meter' }, meter(answer.confidence, `confidence ${fmt2(answer.confidence)}`), h('span', { class: 'num' }, fmt2(answer.confidence))),
+    h('div', { class: 'tiny dim' }, `confidence · P(any write) ${fmt2(mass)}`));
+}
+
+function sentView(row, q) {
+  const m = row.message;
+  if (!m) return callout('critical', 'Recorded request unavailable', h('p', { class: 'small' }, row.message_error || ''));
+  const notes = [];
+  if (row.redactions) notes.push(`${row.redactions} value${row.redactions === 1 ? '' : 's'} redacted locally before sending`);
+  if (row.truncated) notes.push(`clipped to ${fmtInt((q.run.scope && q.run.scope.max_chars) || 0)} characters before sending`);
+  return h('div', { class: 'sg-sent' },
+    h('div', { class: 'sg-sent-role' }, h('span', { class: 'chip' }, m.role), m.tool_function ? text('small muted', ' result of ', code(m.tool_function)) : null),
+    m.text ? h('pre', { class: 'wrap sg-text' }, m.text) : h('p', { class: 'small dim' }, 'No message text.'),
+    (m.tool_calls || []).map(c => h('div', { class: 'sg-call' }, h('div', { class: 'small muted' }, 'calls ', code(c.function)), h('pre', { class: 'wrap' }, prettyJson(c.arguments)))),
+    m.tool_error ? h('div', { class: 'sg-call' }, h('div', { class: 'small no' }, 'tool error'), h('pre', { class: 'wrap' }, m.tool_error)) : null,
+    h('p', { class: 'tiny dim' }, notes.length ? notes.join(' · ') + '. ' : '', 'This is the redacted text the provider received; the verified source holds the original bytes.'));
+}
+
+function answerView(key, answer, q) {
+  const question = q.questions && q.questions[key];
+  const instructions = question && question.instructions;
+  const prompt = typeof instructions === 'string' ? instructions : instructions && instructions.question;
+  const body = [
+    h('div', { class: 'sg-q-head' }, h('h4', null, titleCase(key)), question ? h('span', { class: 'chip' }, question.type) : null),
+    prompt ? h('p', { class: 'small muted sg-q-text' }, prompt) : null,
+  ];
+  if (answer.status !== 'answered') {
+    body.push(callout('neutral', `${titleCase(answer.status)}: no usable answer`, h('p', { class: 'small' }, answer.detail || ''), h('p', { class: 'small muted' }, 'Unscored, never read as a negative.')));
+  } else body.push(distribution(key, answer, question, q));
+  return h('div', { class: 'sg-q' }, body);
+}
+
+function distribution(key, answer, question, q) {
+  const probs = answer.probabilities || {};
+  const criteria = question && question.criteria;
+  const score = Array.isArray(criteria) || (question && question.type === 'score');
+  const options = Array.isArray(criteria) ? criteria.map((c, i) => [String(i), c])
+    : isObj(criteria) ? Object.entries(criteria)
+      : Object.keys(probs).map(k => [k, '']);
+  const bar = ([option, description]) => {
+    const p = probs[option] || 0;
+    const name = score ? `${option} · ${description}` : titleCase(option);
+    const tip = `${score ? 'Level ' + option : option}: ${fmt2(p)}${description && !score ? '\n' + description : ''}`;
+    return h('div', { class: `sg-bar${option === answer.label ? ' top' : ''}`, role: 'row', title: tip },
+      h('span', { class: 'sg-bar-label', role: 'cell' }, name),
+      h('span', { class: 'sg-bar-track', role: 'cell', 'aria-label': `${(p * 100).toFixed(0)}%` }, h('span', { class: 'sg-bar-fill', style: { width: (p * 100).toFixed(1) + '%' } })),
+      h('span', { class: 'sg-bar-value', role: 'cell' }, fmt2(p)));
+  };
+  const chart = h('div', { class: 'sg-dist', role: 'table', 'aria-label': `${titleCase(key)} probabilities` });
+  const writes = key === 'write_claim' ? options.filter(([o]) => q.write_statements.includes(o)) : [];
+  if (writes.length) {
+    const rest = options.filter(([o]) => !q.write_statements.includes(o));
+    const sum = (rows) => rows.reduce((s, [o]) => s + (probs[o] || 0), 0);
+    append(chart, [
+      h('div', { class: 'sg-grp' }, h('span', null, 'Says something about a write'), h('span', { class: 'num' }, `Σ ${fmt2(sum(writes))}`)), writes.map(bar),
+      h('div', { class: 'sg-grp' }, h('span', null, 'No usable write statement'), h('span', { class: 'num' }, `Σ ${fmt2(sum(rest))}`)), rest.map(bar)]);
+  } else append(chart, options.map(bar));
+  const caption = score
+    ? h('p', { class: 'small muted' }, `Expected ${fmt2(answer.value)} of ${options.length - 1} · confidence ${fmt2(answer.confidence)}`)
+    : h('p', { class: 'small muted' }, h('strong', null, titleCase(answer.label)), ` at confidence ${fmt2(answer.confidence)}`,
+      isObj(criteria) && criteria[answer.label] ? `: ${criteria[answer.label]}` : '');
+  return h('div', null, chart, caption);
+}
+
 /* ---------- case ---------- */
 async function pageCase() {
   const main = startPage('Case', 'case');
@@ -1014,6 +1491,7 @@ function init() {
   $('#drawer-close').addEventListener('click', closeDrawer);
   $('#backdrop').addEventListener('click', closeDrawer);
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !$('#drawer').hidden) closeDrawer(); });
+  document.addEventListener('keydown', (ev) => { if (state.keys) state.keys(ev); });
   window.addEventListener('hashchange', route);
   route();
 }

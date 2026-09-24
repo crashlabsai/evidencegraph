@@ -30,10 +30,24 @@ from evidencegraph.derive import configuration_sha256, stale_analyzer_stages, st
 from evidencegraph.docket.questions import COLUMN_QUESTIONS, ENTITY_QUESTIONS, QUESTIONS
 from evidencegraph.docket.render import LABELS, relevant_questions
 from evidencegraph.manifest import read_manifest
-from evidencegraph.provenance import analyzer_build_id, sha256_file, verify_file_identity
+from evidencegraph.provenance import (
+    analyzer_build_id,
+    sha256_bytes,
+    sha256_file,
+    verify_file_identity,
+)
 from evidencegraph.refs import resolve_citation
 from evidencegraph.schema import TABLE_MODELS, Citation, Witness
 from evidencegraph.store import JSON_COLUMNS, Store, read_only_query, safe_path
+from evidencegraph.suggest.policy import (
+    BACKGROUND_MAX_WRITE_MASS,
+    DISPOSITION_ORDER,
+    POLICY_VERSION,
+    UNCERTAIN_BELOW,
+    WRITE_STATEMENTS,
+)
+from evidencegraph.suggest.records import INTERPRETATION, Suggestion
+from evidencegraph.suggest.run import load_run, rank, recheck, stale_reasons
 
 STATIC = Path(__file__).resolve().parent / "static"
 ENTITY_ID = re.compile(r"^e-[0-9a-f]{16,}$")
@@ -134,6 +148,31 @@ QUERY_EXAMPLES = [
     },
     {"title": "Coverage estimates", "sql": "SELECT * FROM coverage"},
 ]
+# What each review disposition means, per task. Dispositions only order the queue.
+DISPOSITION_MEANINGS = {
+    "write-claims": {
+        "review": "The most probable category is a statement about a write, at any "
+        "confidence. Read these first.",
+        "uncertain": (
+            f"Insufficient context, a no-write answer below {UNCERTAIN_BELOW:.2f} confidence, "
+            f"or a no-write answer with more than {BACKGROUND_MAX_WRITE_MASS:.2f} probability "
+            "on write statements."
+        ),
+        "unscored": "No valid answer: the exchange failed or the answer was malformed. "
+        "Never read as a negative.",
+        "background": "Only a concentrated no-write answer. Still listed; a low place in "
+        "the queue is not evidence that nothing happened.",
+    },
+    "search": {
+        "review": "Expected relevance of at least 1.5 on the 0 to 3 scale.",
+        "uncertain": "Expected relevance of at least 0.5 with the levels spread out "
+        "(confidence below 0.5).",
+        "unscored": "No valid answer: the exchange failed or the answer was malformed. "
+        "Never read as a negative.",
+        "background": "Lower expected relevance. Every message in scope is ranked; ranking "
+        "is not completeness.",
+    },
+}
 
 
 class NotFound(ValueError):
@@ -223,6 +262,52 @@ def page(params: dict[str, str]) -> tuple[int, int]:
     except ValueError as exc:
         raise BadRequest("limit and offset must be integers") from exc
     return max(1, min(limit, PAGE_LIMIT)), max(0, offset)
+
+
+SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
+
+
+def sent_request(root: Path, digest: str) -> dict:
+    """The exact request a suggestion run sent, re-hashed before it is shown."""
+    if not SHA256_HEX.match(digest):
+        raise ValueError(f"invalid recorded request digest: {digest}")
+    payload = safe_path(root, f"suggest/blobs/{digest}").read_bytes()
+    if sha256_bytes(payload) != digest:
+        raise ValueError(f"recorded request {digest} failed its hash check")
+    return json.loads(payload)
+
+
+def primary_question(task: str) -> str:
+    return "write_claim" if task == "write-claims" else "search_relevance"
+
+
+def primary_label(row: Suggestion) -> str:
+    """The answered label of a row's primary question, or why there is none."""
+    answer = row.answers.get(primary_question(row.task))
+    if answer is None:
+        return "missing"
+    return (answer.label or "") if answer.status == "answered" else answer.status
+
+
+def searchable(message: dict | None) -> str:
+    if not message:
+        return ""
+    calls = [
+        f"{c.get('function', '')} {c.get('arguments', '')}" for c in message.get("tool_calls", [])
+    ]
+    return " ".join(
+        [message.get("text", ""), message.get("tool_function", ""), message.get("tool_error", "")]
+        + calls
+    )
+
+
+def facet(values: Iterable[str], order: Iterable[str] = ()) -> list[dict]:
+    counts: dict[str, int] = {}
+    for value in values:
+        counts[value] = counts.get(value, 0) + 1
+    first = [v for v in order if v in counts]
+    rest = sorted(v for v in counts if v not in first)
+    return [{"value": v, "n": counts[v]} for v in first + rest]
 
 
 OUTCOME_ORDER = (
@@ -378,6 +463,23 @@ class CaseView:
                 "step": "validate",
                 "done": bool(manifest.get("validation")),
                 "command": self.command("validate CASE --truth DIR"),
+            }
+        )
+        published = manifest.get("suggestions", {})
+        optional.append(
+            {
+                "step": "suggest",
+                "done": bool(published),
+                "applicable": "inspect-eval" in adapters,
+                "detail": (
+                    f"{len(published)} review suggestion run{'' if len(published) == 1 else 's'} "
+                    "published; they order reading and are not evidence"
+                    if published
+                    else "model suggestions that order transcript review; never evidence"
+                    if "inspect-eval" in adapters
+                    else "needs ingested Inspect transcripts"
+                ),
+                "command": self.command("suggest claims CASE"),
             }
         )
         return {
@@ -764,6 +866,161 @@ class CaseView:
             "verified": sha256_file(path) == entry["sha256"],
         }
 
+    def suggestions(self) -> dict:
+        """Published suggestion runs. A run whose files changed is listed, not raised."""
+        manifest = self.manifest()
+        runs = []
+        for key, entry in sorted(manifest.get("suggestions", {}).items()):
+            try:
+                run, rows = load_run(self.root, entry)
+            except (OSError, ValueError) as exc:
+                runs.append(
+                    {
+                        "run_key": key,
+                        "run_id": entry.get("run_id"),
+                        "task": entry.get("task"),
+                        "healthy": False,
+                        "error": str(exc),
+                    }
+                )
+                continue
+            runs.append(
+                {
+                    "run_key": key,
+                    **run.model_dump(
+                        mode="json",
+                        include={
+                            "run_id",
+                            "task",
+                            "query",
+                            "provider",
+                            "requested_model",
+                            "resolved_models",
+                            "docket_question",
+                            "policy_version",
+                            "completed_at",
+                            "usage",
+                        },
+                    ),
+                    "total": len(rows),
+                    "dispositions": {
+                        d: sum(r.disposition == d for r in rows) for d in DISPOSITION_ORDER
+                    },
+                    "stale": stale_reasons(self.root, manifest, entry, run),
+                    "healthy": True,
+                    "error": None,
+                }
+            )
+        commands = [
+            ("Offline keyword baseline: no network, no key", "suggest claims CASE"),
+            ("Rank every message for your own question", 'suggest search CASE "QUESTION"'),
+            (
+                "TypeSafe Jev: explicit egress and a hard request budget",
+                "suggest claims CASE --provider typesafe --allow-network --max-requests 200",
+            ),
+        ]
+        return {
+            "runs": runs,
+            "interpretation": INTERPRETATION,
+            "policy_version": POLICY_VERSION,
+            "disposition_order": list(DISPOSITION_ORDER),
+            "meanings": DISPOSITION_MEANINGS,
+            # A bundle is a record to check, not a case to add runs to.
+            "commands": []
+            if self.bundle
+            else [{"title": title, "command": self.command(c)} for title, c in commands],
+        }
+
+    def suggestion_queue(self, key: str, params: dict[str, str]) -> dict:
+        """One run's review queue in `eg suggest show` order, with full distributions."""
+        manifest = self.manifest()
+        entry = manifest.get("suggestions", {}).get(key)
+        if entry is None:
+            raise NotFound(f"no published suggestion run {key}")
+        run, rows = load_run(self.root, entry)
+        ordered = sorted(rows, key=rank)
+        messages: dict[str, dict | None] = {}
+        errors: dict[str, str] = {}
+
+        def message(row: Suggestion) -> dict | None:
+            digest = row.request_sha256
+            if digest not in messages:
+                try:
+                    messages[digest] = sent_request(self.root, digest)["state"]["message"]
+                except (OSError, ValueError, KeyError, TypeError) as exc:
+                    messages[digest], errors[digest] = None, str(exc)
+            return messages[digest]
+
+        wanted = {
+            "disposition": lambda r: r.disposition,
+            "role": lambda r: r.role,
+            "label": primary_label,
+            "transcript": lambda r: r.transcript_id,
+        }
+        text = params.get("q", "").strip().lower()
+
+        def keep(row: Suggestion) -> bool:
+            if any(params.get(name) and get(row) != params[name] for name, get in wanted.items()):
+                return False
+            if text:
+                haystack = " ".join([searchable(message(row)), row.reason, row.transcript_id])
+                return text in haystack.lower()
+            return True
+
+        selected = [(place, row) for place, row in enumerate(ordered, 1) if keep(row)]
+        limit, offset = page(params)
+        shown = selected[offset : offset + limit]
+        questions = None
+        if ordered:
+            try:
+                questions = sent_request(self.root, ordered[0].request_sha256)["questions"]
+            except (OSError, ValueError, KeyError, TypeError):
+                questions = None
+        with Store(self.root, manifest) as store:
+            citation_index = index_citations(store, {row.span_id for _, row in shown})
+        return {
+            "run_key": key,
+            "run": run.model_dump(mode="json"),
+            "stale": stale_reasons(self.root, manifest, entry, run),
+            "primary": primary_question(run.task),
+            "questions": questions,
+            "meanings": DISPOSITION_MEANINGS.get(run.task, {}),
+            "write_statements": list(WRITE_STATEMENTS) if run.task == "write-claims" else [],
+            "thresholds": {
+                "uncertain_below": UNCERTAIN_BELOW,
+                "background_max_write_mass": BACKGROUND_MAX_WRITE_MASS,
+            },
+            "policy_version": POLICY_VERSION,
+            "run_total": len(rows),
+            "total": len(selected),
+            "limit": limit,
+            "offset": offset,
+            "facets": {
+                "disposition": facet((r.disposition for r in rows), DISPOSITION_ORDER),
+                "role": facet(r.role for r in rows),
+                "label": facet(primary_label(r) for r in rows),
+                "transcript": facet(r.transcript_id for r in rows),
+            },
+            "rows": [
+                {
+                    "rank": place,
+                    **row.model_dump(mode="json"),
+                    "message": message(row),
+                    "message_error": errors.get(row.request_sha256),
+                }
+                for place, row in shown
+            ],
+            "citation_index": citation_index,
+            "witness_index": self.witness_index(manifest),
+        }
+
+    def suggestion_recheck(self, key: str) -> dict:
+        """Re-validate recorded responses offline, exactly as `eg verify --recompute`."""
+        entry = self.manifest().get("suggestions", {}).get(key)
+        if entry is None:
+            raise NotFound(f"no published suggestion run {key}")
+        return {"run_key": key, "result": recheck(self.root, entry)}
+
     def report(self, name: str) -> tuple[bytes, str]:
         manifest = self.manifest()
         if name in ("case.json", "manifest.json"):
@@ -800,6 +1057,17 @@ class App:
             ("POST", re.compile(r"/api/query"), lambda p, b: view.query(b)),
             ("GET", re.compile(r"/api/facts"), lambda p, b: view.facts()),
             ("GET", re.compile(r"/api/validation"), lambda p, b: view.validation()),
+            ("GET", re.compile(r"/api/suggestions"), lambda p, b: view.suggestions()),
+            (
+                "GET",
+                re.compile(r"/api/suggestions/([^/]+)"),
+                lambda p, b, k: view.suggestion_queue(k, p),
+            ),
+            (
+                "GET",
+                re.compile(r"/api/suggestions/([^/]+)/recheck"),
+                lambda p, b, k: view.suggestion_recheck(k),
+            ),
         ]
 
     def handle(self, method: str, path: str, params: dict[str, str], body: Any) -> Response:

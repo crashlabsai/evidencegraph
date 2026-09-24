@@ -50,6 +50,23 @@ with a text search over keys and attributes. An entity page leads with every
 relation in which the entity is subject or object, then its attributes, time claims
 and citation.
 
+**Suggestions.** Optional review suggestions from `eg suggest`, which are not evidence
+(see [suggestions.md](suggestions.md)). Each published run appears as a card with its
+model, provider, query and disposition counts, plus a warning when the evidence,
+question wording, review policy or suggestion code changed after the run. A run whose
+files changed since publication is listed as unreadable rather than shown. Without a
+choice, the page opens the current model run for write claims. The queue is in the
+same order as `eg suggest show`. It can be filtered by disposition, answer, role and
+transcript, and searched by message text. A filter hides rows but never renumbers
+them. Opening a message shows the exact redacted text the provider received,
+re-hashed against its recorded request, beside every probability each question
+returned. The page also says why the policy placed the message where it did. **Open
+verified source** resolves the same message through the citation drawer. **Recheck
+recorded answers** re-validates every recorded response offline, as
+`eg verify --recompute` does, and contacts no provider. Read marks (`x`, or the
+number beside a message) are kept in the browser only. `j` and `k` move through the
+queue, and `s` opens the source.
+
 **Query.** A SQL console with the same rules as `eg query`: one read-only SELECT,
 no file or network access, results capped at a chosen row limit and downloadable
 as CSV or JSON. The table list shows columns and which question each table serves.
@@ -73,7 +90,9 @@ flagged on every page until the stages are re-run.
   so a web page elsewhere cannot drive the browser to read the case through DNS
   rebinding.
 - Serves no evidence bytes directly; source rows are reachable only through
-  citation resolution, which verifies hashes first.
+  citation resolution, which verifies hashes first. The Suggestions page shows only
+  the redacted request text a suggestion run recorded, after re-hashing it against
+  its content address.
 - SQL runs with DuckDB external access disabled and reads limited to the case's own
   Parquet partitions, exactly as `eg query`.
 - Sends a strict Content-Security-Policy; the page uses no inline script or style

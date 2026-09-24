@@ -22,6 +22,12 @@
 - `eg lab claims-corpus` and `scripts/suggest_experiment.py`: a labelled synthetic
   corpus with dev/held-out splits and a baseline-versus-Jev comparison; results and
   failure cases in `docs/suggestions.md`
+- `eg serve` gains a Suggestions page: every published run, its review queue in
+  `eg suggest show` order with filters and text search, the exact redacted text each
+  provider received beside its full answer distribution, stale reasons, an offline
+  recheck, and a link from every message to its hash-verified source. Read marks stay
+  in the browser; the viewer still writes nothing to the case, and a changed run file
+  or request blob is reported rather than raised
 
 ## Unreleased (incident-response stress pack)
 

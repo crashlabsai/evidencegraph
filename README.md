@@ -102,8 +102,9 @@ my question?"). The answers are stored beside the graph as a review queue with f
 probability distributions. They never change a relation, coverage population or
 docket line, and the docket is byte-identical with or without them. Network providers
 need `--allow-network` and a hard `--max-requests` budget; every exchange is recorded
-and replayable offline. See [docs/suggestions.md](docs/suggestions.md), including the
-pilot comparison and where the model failed.
+and replayable offline. `eg serve` shows the queue on its Suggestions page. See
+[docs/suggestions.md](docs/suggestions.md), including the pilot comparison and where
+the model failed.
 
 ## Reading a docket
 

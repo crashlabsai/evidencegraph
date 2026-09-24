@@ -208,10 +208,20 @@ What the pilot does and does not show:
   measures long transcripts, real incidents, multilingual text beyond two sentences,
   or an adaptive adversary.
 
+## Reading the queue in the viewer
+
+`eg serve CASE` has a Suggestions page for every published run, in the same order as
+`eg suggest show`. Opening a message shows the exact redacted text the provider
+received, re-hashed against its recorded request, beside every probability it
+returned. The page also shows why the policy placed the message where it did, and
+links to the hash-verified source through the same citation drawer as the docket. A
+changed run file or request blob is reported on the page and never raised as an
+error. Priority is drawn in one blue ramp with a shape per disposition, never in the
+green and red of forensic outcomes. Read marks are kept in the browser and never
+written to the case. See [viewer.md](viewer.md#pages).
+
 ## Not yet built
 
-- A viewer page for the review queue. Until then, `eg suggest show` prints the ordered
-  queue with excerpts, answers and stale reasons, and `eg serve` is unchanged.
 - Independent labels, a larger held-out set by incident and attack family, and a
   schema-constrained LLM baseline alongside the keyword rules.
 - Surrounding-message context in packets, and multi-label classification for

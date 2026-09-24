@@ -176,7 +176,9 @@ def test_suggestions_never_change_forensic_conclusions(incident_case):
 
 
 def test_forensic_modules_never_import_suggestions():
-    allowed = {"cli.py", "export/bagit.py"}
+    # The CLI and export package suggestions; the read-only viewer displays them. None
+    # of these derives a relation, coverage population or docket answer.
+    allowed = {"cli.py", "export/bagit.py", "ui/server.py"}
     for path in SRC.rglob("*.py"):
         relative = path.relative_to(SRC).as_posix()
         if relative.startswith("suggest/") or relative in allowed:
