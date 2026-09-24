@@ -11,6 +11,8 @@
   and offline replay of recorded runs
 - Local redaction and bounding of every packet; strict, non-repairing answer
   validation; `unscored` kept distinct from negative answers
+- Redaction version 2: a value already redacted by JSON key is no longer matched again
+  as a free-text assignment (version 1 sent `"[redacted]]"` and counted it twice)
 - Runs prepare under the case lock, infer without it and refuse to publish onto
   changed evidence; exact request/response bytes are content-addressed, exported and
   re-validated by `eg verify --recompute`

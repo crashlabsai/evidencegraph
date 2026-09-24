@@ -76,6 +76,14 @@ and a low rank is not evidence of irrelevance.
   shapes are replaced with `[redacted]` locally. Hex digests are kept. This is
   deterministic pattern matching and can miss secrets, so it does not replace a
   data-handling decision.
+  - Redaction version 2 (2026-09-24) redacts and counts each secret once, and leaves
+    `[redacted]` alone.
+  - Version 1 matched a value already redacted by key a second time, as a free-text
+    assignment. It sent `"receipt_token": "[redacted]]"` and counted the value twice.
+    Nothing leaked, but the request bytes differed.
+  - The pilot below was recorded under version 1. Replaying it now answers only the
+    spans that contain no redacted key. The rest come back `not_sent` and are
+    listed as `unscored`.
 - **Budget.** The HTTP client is plain `urllib`, not the SDK. It retries only 429/529
   and network errors, once, and reads at most 1 MiB per response. Every attempt, retries included, counts against
   `--max-requests`, and a run whose distinct requests exceed the budget refuses to
