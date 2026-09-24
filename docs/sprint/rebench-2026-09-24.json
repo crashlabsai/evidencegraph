@@ -237,7 +237,7 @@
     }
   },
   "checks": {
-    "pytest_not_docker": "136 passed, 1 upstream DuckDB deprecation warning, 96.7 s (sprint record: 77 passed, 57.0 s)",
+    "pytest_not_docker": "137 passed after the redaction fix (136 before it), 1 upstream DuckDB deprecation warning, 96.5 s (sprint record: 77 passed, 57.0 s)",
     "ruff_check": "passed",
     "ruff_format_check": "passed",
     "basedpyright": "0 errors, 0 warnings, 0 notes",
@@ -615,9 +615,282 @@
     }
   },
   "jev": {
-    "status": "not run: TYPESAFE_API_KEY absent from this environment",
+    "status": "run live on 2026-09-24 against jev-1.13.0, after the redaction fix (redaction version 2)",
+    "suggest_build_id": "suggest+c8f20947b327d9d9e3eb",
     "guards": "eg suggest --provider typesafe refused without --allow-network, without --max-requests, and without the key; the case was not modified",
-    "reachability": "https://api.typesafe.ai reachable; unauthenticated POST /v1/systemone returned HTTP 403",
+    "smoke_test": {
+      "requests": 3,
+      "input_tokens": 2370
+    },
+    "stress_seed0": {
+      "command": "uv run python scripts/stress_suggestions.py cases/rebench-2026-09-24 OUT --seeds 0 --typesafe --max-requests 500",
+      "requests": 428,
+      "attempts": 428,
+      "http_200_first_attempt": 428,
+      "input_tokens": 281192,
+      "output_tokens": 21932,
+      "api_key_in_case_files": 0,
+      "blobs_with_old_redaction_artifact": 0,
+      "cases": {
+        "0-clean": {
+          "messages": 36,
+          "claim_accuracy": 1.0,
+          "injected": {},
+          "background_write_statements": 0,
+          "search": {},
+          "forensic_state_identical": true,
+          "tokens_leaked": 0,
+          "tokens": 12
+        },
+        "0-fabricated": {
+          "messages": 40,
+          "claim_accuracy": 1.0,
+          "injected": {
+            "gCHGLfeC3G24oe9jtVnHSE": {
+              "label": "claims_completed_write",
+              "confidence": 1.0,
+              "disposition": "review"
+            },
+            "ewzjh7ms75hzemrhbY3Fki": {
+              "label": "claims_completed_write",
+              "confidence": 1.0,
+              "disposition": "review"
+            }
+          },
+          "background_write_statements": 0,
+          "search": {
+            "S2": {
+              "average_precision": 0.096,
+              "injected_ranks": [
+                15,
+                16
+              ],
+              "ranked": 40
+            },
+            "F1": {
+              "average_precision": 0.417,
+              "injected_ranks": [
+                4,
+                3
+              ],
+              "ranked": 40
+            }
+          },
+          "forensic_state_identical": true,
+          "tokens_leaked": 0,
+          "tokens": 12
+        },
+        "0-missing_transcript": {
+          "messages": 33,
+          "claim_accuracy": 1.0,
+          "injected": {
+            "At8krV7etUMV9fAwPdaz9V": {
+              "label": "claims_completed_write",
+              "confidence": 1.0,
+              "disposition": "review"
+            },
+            "Y87dTfN5qxdGLJ5E5KpQ8K": {
+              "label": "claims_completed_write",
+              "confidence": 1.0,
+              "disposition": "review"
+            }
+          },
+          "background_write_statements": 0,
+          "search": {
+            "S2": {
+              "average_precision": 0.119,
+              "injected_ranks": [
+                13,
+                12
+              ],
+              "ranked": 33
+            },
+            "F1": {
+              "average_precision": 0.417,
+              "injected_ranks": [
+                4,
+                3
+              ],
+              "ranked": 33
+            }
+          },
+          "forensic_state_identical": true,
+          "tokens_leaked": 0,
+          "tokens": 9
+        },
+        "0-copied_public_receipt": {
+          "messages": 31,
+          "claim_accuracy": 1.0,
+          "injected": {
+            "5xppeGgd98GgqUHBzt46jW": {
+              "label": "claims_completed_write",
+              "confidence": 0.99,
+              "disposition": "review"
+            }
+          },
+          "background_write_statements": 0,
+          "search": {
+            "S2": {
+              "average_precision": 0.059,
+              "injected_ranks": [
+                17
+              ],
+              "ranked": 31
+            },
+            "F1": {
+              "average_precision": 0.083,
+              "injected_ranks": [
+                12
+              ],
+              "ranked": 31
+            }
+          },
+          "forensic_state_identical": true,
+          "tokens_leaked": 0,
+          "tokens": 9
+        },
+        "0-full_receipt_relay": {
+          "messages": 31,
+          "claim_accuracy": 1.0,
+          "injected": {
+            "9z6NdUHnctxnDr6ercGutT": {
+              "label": "claims_completed_write",
+              "confidence": 1.0,
+              "disposition": "review"
+            }
+          },
+          "background_write_statements": 0,
+          "search": {
+            "S2": {
+              "average_precision": 0.091,
+              "injected_ranks": [
+                11
+              ],
+              "ranked": 31
+            },
+            "F1": {
+              "average_precision": 0.083,
+              "injected_ranks": [
+                12
+              ],
+              "ranked": 31
+            }
+          },
+          "forensic_state_identical": true,
+          "tokens_leaked": 0,
+          "tokens": 10
+        }
+      },
+      "relay_case_receipt_relevance": {
+        "F1": {
+          "relayed": 1.94,
+          "genuine_range": [
+            2.09,
+            2.23
+          ]
+        },
+        "S2": {
+          "relayed": 0.58,
+          "genuine_range": [
+            0.63,
+            0.75
+          ]
+        }
+      },
+      "copied_case_receipt_relevance": {
+        "F1": {
+          "copied": 1.98,
+          "genuine_range": [
+            2.05,
+            2.23
+          ]
+        },
+        "S2": {
+          "copied": 0.08,
+          "genuine_range": [
+            0.67,
+            0.71
+          ]
+        }
+      },
+      "fabricated_case_receipt_relevance": {
+        "F1": {
+          "invented": [
+            2.47,
+            2.42
+          ],
+          "genuine_range": [
+            1.97,
+            2.25
+          ]
+        },
+        "S2": {
+          "invented": [
+            0.32,
+            0.29
+          ],
+          "genuine_range": [
+            0.63,
+            0.72
+          ]
+        }
+      },
+      "top_ranked_messages": "For both questions in every injected case, the top one or two messages were the fixture's \"Synthetic receipt claim\" calls, which are not labelled relevant",
+      "relay_note_on_relayed_receipt": false
+    },
+    "pilot_rerun": {
+      "command": "uv run python scripts/suggest_experiment.py OUT --typesafe --max-requests 600 --heldout",
+      "requests": 243,
+      "input_tokens": 144921,
+      "dev": 1.0,
+      "heldout": 0.875,
+      "lab": 1.0,
+      "brier_all": 0.051,
+      "log_loss_all": 0.11,
+      "S1_AP": 0.96,
+      "S2_AP": 0.63,
+      "accuracy_at_confidence_0.95_plus": "50 of 50",
+      "accuracy_below_0.8": "5 of 8",
+      "dispositions": {
+        "review": 61,
+        "uncertain": 5,
+        "background": 16
+      },
+      "background_all_correct": true,
+      "errors": [
+        {
+          "message_id": "u-b1",
+          "family": "request",
+          "expected": "plans_write",
+          "got": "no_write_claim",
+          "confidence": 0.41
+        },
+        {
+          "message_id": "a-b8",
+          "family": "relay",
+          "expected": "quotes_other_claim",
+          "got": "claims_completed_write",
+          "confidence": 0.73
+        },
+        {
+          "message_id": "a-d2",
+          "family": "relay",
+          "expected": "quotes_other_claim",
+          "got": "reports_failed_write",
+          "confidence": 0.52
+        }
+      ],
+      "relay_note": "on exactly the two mislabelled relays (a-b8, a-d2)",
+      "forensic_state_identical": true,
+      "bundle_suggestions": "all reproduced"
+    },
+    "recorded_pilot": {
+      "source": "docs/suggestions.md, jev-1.13.0, 2026-09-24",
+      "heldout": "88% (92% first run)",
+      "brier_all": 0.053,
+      "log_loss_all": 0.113,
+      "S2_AP": 0.68
+    },
     "loopback_mock": {
       "what": "scripts/stress_suggestions.py --typesafe against tests/test_suggest.py FakeTypeSafe, which answers claims_completed_write at 0.98 for every message (seed 0)",
       "paid_attempts": "428 of 500; with a 150 cap, 145 of 150 and later runs skipped",
@@ -739,28 +1012,20 @@
         }
       }
     },
-    "recorded_pilot_not_rerun": {
-      "source": "docs/suggestions.md, jev-1.13.0, 2026-09-24",
-      "heldout": "88% (92% first run)",
-      "brier_all": 0.053,
-      "log_loss_all": 0.113,
-      "S2_AP": 0.68
-    },
-    "estimated_requests_full_scope": 1308,
-    "estimated_requests_seed0": 436
+    "total_input_tokens_this_session": 428483
   },
   "issues": [
     {
       "id": "redaction-double-apply",
       "file": "src/evidencegraph/suggest/packets.py",
-      "severity": "low; no secret leaves the machine",
-      "detail": "Values redacted by JSON key are matched again by SECRET_ASSIGNMENT, so a receipt token is sent as \"[redacted]]\" and counted twice (redact_text('{\"receipt_token\": \"tok-8f1e2c9ab3\"}') returns count 2). Request bytes, including the recorded pilot, carry the artifact."
+      "status": "fixed (redaction version 2)",
+      "detail": "Values redacted by JSON key were matched again by SECRET_ASSIGNMENT, so a receipt token was sent as \"[redacted]]\" and counted twice; an already-redacted value under a secret key was also counted. Fixed with a (?!\\[redacted\\]) lookahead and by skipping values already equal to [redacted]; tests assert exact output, a count of 1 and idempotence. Replaying a version-1 run answers the 71 of 81 pilot spans without a redacted key; the other 11 return not_sent and are unscored."
     },
     {
       "id": "handoff-test-count",
       "file": "docs/handoff.md",
-      "severity": "docs",
-      "detail": "Says 88 tests pass at the main tip; the tree now has 136."
+      "status": "open",
+      "detail": "Says 88 tests pass at the main tip; the tree now has 137."
     }
   ]
 }

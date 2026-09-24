@@ -186,6 +186,18 @@ errors were in `review` (2) and `uncertain` (1). The "possibly relayed" note app
 on exactly two messages: the two relays Jev mislabelled. The other three relays were
 labelled correctly and needed no note.
 
+A third run on 2026-09-24, after the redaction fix (version 2), gave:
+
+- held-out accuracy of 88%;
+- Brier 0.051 and log loss 0.110;
+- 50 of 50 answers correct at confidence ≥ 0.95;
+- S1 average precision 0.96 and S2 0.63.
+
+The same two relays were mislabelled, with the relay note on both. The relayed
+receipt came back at 0.73, and every error fell below 0.8. The same run on the
+incident-stress cases is in
+[the sprint re-benchmark](sprint/rebench-2026-09-24.md).
+
 What the pilot does and does not show:
 
 - **Accuracy is not distinguishable here.** On held-out messages the providers tie
