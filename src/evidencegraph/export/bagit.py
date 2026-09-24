@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path, PurePosixPath
 
 from evidencegraph.derive import require_current_configuration
-from evidencegraph.manifest import case_mutation_lock, read_manifest
+from evidencegraph.manifest import atomic_json, case_mutation_lock, read_manifest
 from evidencegraph.provenance import sha256_file, verify_file_identity
 from evidencegraph.schema import Relation
 from evidencegraph.store import Store, safe_path, validate_graph
@@ -81,7 +81,28 @@ def case_files(manifest: dict) -> set[str]:
     if manifest.get("validation"):
         files.add(manifest["validation"]["path"])
     files.update(manifest.get("scout", {}).get("files", {}))
+    for entry in manifest.get("suggestions", {}).values():
+        files.update(entry["files"])
     return files
+
+
+def omit_unverifiable_suggestions(case: Path, manifest: dict) -> dict[str, str]:
+    """Suggestions are optional: a run with a missing or altered file is left out of the
+    bundle instead of blocking export of the forensic record."""
+    omitted = {}
+    for key, entry in list(manifest.get("suggestions", {}).items()):
+        try:
+            for path, digest in entry["files"].items():
+                verify_file_identity(
+                    safe_path(case, path),
+                    expected_size=None,
+                    expected_sha256=digest,
+                    subject=path,
+                )
+        except ValueError as exc:
+            omitted[key] = str(exc)
+            del manifest["suggestions"][key]
+    return omitted
 
 
 def export_bundle(case: Path, dest: Path) -> dict:
@@ -99,11 +120,14 @@ def export_bundle(case: Path, dest: Path) -> dict:
             if not manifest.get("reports"):
                 raise ValueError("render a current docket before export")
             require_current_configuration(case, manifest)
+            omitted = omit_unverifiable_suggestions(case, manifest)
             for name in sorted(case_files(manifest)):
                 source = safe_path(case, name)
                 target = temporary / "data" / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(source, target)
+            if omitted:
+                atomic_json(temporary / "data" / "manifest.json", manifest)
             (temporary / "bagit.txt").write_text(
                 "BagIt-Version: 1.0\nTag-File-Character-Encoding: UTF-8\n"
             )
@@ -117,7 +141,11 @@ def export_bundle(case: Path, dest: Path) -> dict:
             )
             result = verify_bundle(temporary, recompute=True)
         temporary.rename(dest)
-        return {"bundle": str(dest), **result}
+        return {
+            "bundle": str(dest),
+            **result,
+            **({"suggestions_omitted": omitted} if omitted else {}),
+        }
     finally:
         if temporary.exists():
             shutil.rmtree(temporary)
@@ -179,10 +207,26 @@ def verify_bundle(dest: Path, *, recompute: bool = False) -> dict:
             expected_sha256=digest,
             subject="Scout database",
         )
+    for entry in manifest.get("suggestions", {}).values():
+        for path, digest in entry["files"].items():
+            verify_file_identity(
+                safe_path(root, path),
+                expected_size=None,
+                expected_sha256=digest,
+                subject="suggestion record",
+            )
     with Store(root, manifest) as store:
         validate_graph(store)
         for row in store.query("SELECT * FROM relations"):
             Relation.model_validate(row)
+    suggestions = {}
+    if recompute and manifest.get("suggestions"):
+        # Replays recorded provider bytes through local validation and policy; it
+        # cannot show the provider would answer the same way again. A run that no
+        # longer reproduces is reported, and never fails verification of the docket.
+        from evidencegraph.suggest.run import recheck
+
+        suggestions = {key: recheck(root, entry) for key, entry in manifest["suggestions"].items()}
     if recompute:
         from evidencegraph.docket.render import compute_docket
 
@@ -198,4 +242,5 @@ def verify_bundle(dest: Path, *, recompute: bool = False) -> dict:
         "recomputed": recompute,
         "payload_files": len(payload),
         "payload_manifest_sha256": sha256_file(dest / "manifest-sha256.txt"),
+        **({"suggestions_rechecked": suggestions} if suggestions else {}),
     }

@@ -89,6 +89,22 @@ domain; entity and relation browsing; a read-only SQL console; and the pipeline
 status with the command for each stage not yet run. It never mutates the case.
 See [docs/viewer.md](docs/viewer.md).
 
+## Optional review suggestions
+
+```sh
+uv run eg suggest claims cases/mine              # offline keyword baseline
+uv run eg suggest show cases/mine write-claims:baseline
+```
+
+`eg suggest` asks a decision model, such as TypeSafe's Jev, bounded questions about each
+cited transcript message ("what does this say about a write?", "how relevant is it to
+my question?"). The answers are stored beside the graph as a review queue with full
+probability distributions. They never change a relation, coverage population or
+docket line, and the docket is byte-identical with or without them. Network providers
+need `--allow-network` and a hard `--max-requests` budget; every exchange is recorded
+and replayable offline. See [docs/suggestions.md](docs/suggestions.md), including the
+pilot comparison and where the model failed.
+
 ## Reading a docket
 
 | Status | Meaning |
@@ -160,6 +176,8 @@ is [docs/evidencegraph.md](docs/evidencegraph.md).
 | [docs/questions.md](docs/questions.md) | The sixteen frozen questions and the evidence each needs |
 | [docs/glossary.md](docs/glossary.md) | Witness, trust domain, receipt token, docket and the rest |
 | [docs/evidencegraph.md](docs/evidencegraph.md) | Status vocabulary and forensic rules |
+| [docs/suggestions.md](docs/suggestions.md) | Optional model review suggestions: boundaries, records, pilot results |
+| [docs/typesafe-assessment.md](docs/typesafe-assessment.md) | Why and how a decision model may assist review, and what it must never decide |
 | [docs/cases/lab-validation.md](docs/cases/lab-validation.md) | Staged incident and its ground-truth scores |
 | [docs/cases/dsewiki.md](docs/cases/dsewiki.md) | Public export reconstruction findings |
 | [docs/critical-review.md](docs/critical-review.md) | Independent review and the resolution of each finding |

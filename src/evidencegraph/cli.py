@@ -26,9 +26,17 @@ witness_app = typer.Typer(
 lab_app = typer.Typer(
     no_args_is_help=True, help="Stage synthetic incidents and import lab collections."
 )
+suggest_app = typer.Typer(
+    no_args_is_help=True,
+    help=(
+        "Optional model suggestions that order transcript review. They are stored beside "
+        "the graph, never change a relation, coverage or docket answer, and are not evidence."
+    ),
+)
 app.add_typer(case_app, name="case")
 app.add_typer(witness_app, name="witness")
 app.add_typer(lab_app, name="lab")
+app.add_typer(suggest_app, name="suggest")
 
 Case = Annotated[Path, typer.Argument(help="Case directory created by `eg case init`")]
 
@@ -300,6 +308,18 @@ def import_mac(
     output(import_mac_collection(collection, out))
 
 
+@lab_app.command("claims-corpus")
+def claims_corpus(
+    out: Annotated[
+        Path, typer.Argument(help="New directory for public/ transcripts and private/ labels")
+    ],
+):
+    """Write a small labelled transcript corpus for comparing write-claim suggestion providers."""
+    from evidencegraph.lab.claims import construct_claims_corpus
+
+    output(construct_claims_corpus(out))
+
+
 @app.command()
 def validate(
     case: Case,
@@ -395,6 +415,193 @@ def serve(
             allowed_hosts=allowed_host or (),
             verbose=verbose,
         )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+Provider = Annotated[
+    str,
+    typer.Option(
+        help="baseline (local keyword rules), typesafe (network, paid) or replay (recorded answers)"
+    ),
+]
+Model = Annotated[
+    str | None,
+    typer.Option(help="Model id to request; typesafe defaults to the pinned jev-1.13.0"),
+]
+AllowNetwork = Annotated[
+    bool,
+    typer.Option(
+        help="Permit sending redacted transcript excerpts to the provider; check the case's "
+        "data-handling terms first"
+    ),
+]
+MaxRequests = Annotated[
+    int, typer.Option(help="Hard cap on paid HTTP attempts, retries included (typesafe only)")
+]
+FromRun = Annotated[
+    str | None, typer.Option(help="Run id whose recorded responses --provider replay reuses")
+]
+Roles = Annotated[
+    list[str] | None,
+    typer.Option("--role", help="Message roles in scope (default user, assistant, tool)"),
+]
+
+
+def suggest_with(
+    case: Path,
+    task: str,
+    query: str | None,
+    provider: str,
+    model: str | None,
+    allow_network: bool,
+    max_requests: int,
+    base_url: str | None,
+    from_run: str | None,
+    roles: list[str] | None,
+    max_chars: int,
+    concurrency: int,
+) -> None:
+    from evidencegraph.suggest.packets import DEFAULT_ROLES
+    from evidencegraph.suggest.providers import make_provider
+    from evidencegraph.suggest.run import run_suggestions
+
+    try:
+        chosen, requested = make_provider(
+            case,
+            provider,
+            model=model,
+            allow_network=allow_network,
+            max_requests=max_requests,
+            base_url=base_url,
+            from_run=from_run,
+        )
+        output(
+            run_suggestions(
+                case,
+                task=task,
+                provider=chosen,
+                model=requested,
+                query=query,
+                roles=tuple(roles) if roles else DEFAULT_ROLES,
+                max_chars=max_chars,
+                concurrency=concurrency,
+                max_requests=max_requests if chosen.network else None,
+                progress=lambda done, total: (
+                    typer.echo(f"{done}/{total}", err=True)
+                    if done == total or done % 25 == 0
+                    else None
+                ),
+            )
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@suggest_app.command("claims")
+def suggest_claims(
+    case: Case,
+    provider: Provider = "baseline",
+    model: Model = None,
+    allow_network: AllowNetwork = False,
+    max_requests: MaxRequests = 0,
+    base_url: Annotated[str | None, typer.Option(help="Provider base URL override")] = None,
+    from_run: FromRun = None,
+    role: Roles = None,
+    max_chars: Annotated[int, typer.Option(help="Characters of each message sent")] = 4000,
+    concurrency: Annotated[int, typer.Option(help="Parallel requests")] = 4,
+):
+    """Classify what each transcript message says about registry writes, for LQ5 review."""
+    suggest_with(
+        case,
+        "write-claims",
+        None,
+        provider,
+        model,
+        allow_network,
+        max_requests,
+        base_url,
+        from_run,
+        role,
+        max_chars,
+        concurrency,
+    )
+
+
+@suggest_app.command("search")
+def suggest_search(
+    case: Case,
+    query: Annotated[str, typer.Argument(help="The investigator's question in plain language")],
+    provider: Provider = "baseline",
+    model: Model = None,
+    allow_network: AllowNetwork = False,
+    max_requests: MaxRequests = 0,
+    base_url: Annotated[str | None, typer.Option(help="Provider base URL override")] = None,
+    from_run: FromRun = None,
+    role: Roles = None,
+    max_chars: Annotated[int, typer.Option(help="Characters of each message sent")] = 4000,
+    concurrency: Annotated[int, typer.Option(help="Parallel requests")] = 4,
+):
+    """Rank every in-scope message by relevance to a question. Ranking is not completeness."""
+    suggest_with(
+        case,
+        "search",
+        query,
+        provider,
+        model,
+        allow_network,
+        max_requests,
+        base_url,
+        from_run,
+        role,
+        max_chars,
+        concurrency,
+    )
+
+
+@suggest_app.command("show")
+def suggest_show(
+    case: Case,
+    run_key: Annotated[
+        str | None, typer.Argument(help="Run key such as write-claims:typesafe")
+    ] = None,
+    limit: Annotated[int, typer.Option(help="Suggestions to print")] = 20,
+):
+    """List suggestion runs, or print one run's review queue with stale reasons."""
+    from evidencegraph.suggest.run import show
+
+    try:
+        output(show(case, run_key, limit=limit))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@suggest_app.command("drop")
+def suggest_drop(
+    case: Case,
+    run_key: Annotated[str, typer.Argument(help="Run key such as write-claims:typesafe")],
+):
+    """Unpublish one suggestion run; its recorded exchanges stay on disk for replay."""
+    from evidencegraph.suggest.run import drop
+
+    try:
+        output(drop(case, run_key))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@suggest_app.command("evaluate")
+def suggest_evaluate(
+    case: Case,
+    run_key: Annotated[str, typer.Argument(help="Run key such as write-claims:typesafe")],
+    labels: Annotated[Path, typer.Option(help="JSONL labels kept outside the case")],
+    split: Annotated[str | None, typer.Option(help="Score only this label split")] = None,
+):
+    """Score a suggestion run against labels. Writes nothing into the case."""
+    from evidencegraph.suggest.evaluate import evaluate
+
+    try:
+        output(evaluate(case, run_key, labels, split=split))
     except ValueError as exc:
         raise typer.BadParameter(str(exc)) from exc
 
