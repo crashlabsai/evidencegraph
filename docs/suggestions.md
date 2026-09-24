@@ -76,6 +76,14 @@ and a low rank is not evidence of irrelevance.
   shapes are replaced with `[redacted]` locally. Hex digests are kept. This is
   deterministic pattern matching and can miss secrets, so it does not replace a
   data-handling decision.
+  - Redaction version 2 (2026-09-24) redacts and counts each secret once, and leaves
+    `[redacted]` alone.
+  - Version 1 matched a value already redacted by key a second time, as a free-text
+    assignment. It sent `"receipt_token": "[redacted]]"` and counted the value twice.
+    Nothing leaked, but the request bytes differed.
+  - The pilot below was recorded under version 1. Replaying it now answers only the
+    spans that contain no redacted key. The rest come back `not_sent` and are
+    listed as `unscored`.
 - **Budget.** The HTTP client is plain `urllib`, not the SDK. It retries only 429/529
   and network errors, once, and reads at most 1 MiB per response. Every attempt, retries included, counts against
   `--max-requests`, and a run whose distinct requests exceed the budget refuses to
@@ -177,6 +185,18 @@ messages were labelled correctly, so no claimed write was pushed out of view. Th
 errors were in `review` (2) and `uncertain` (1). The "possibly relayed" note appeared
 on exactly two messages: the two relays Jev mislabelled. The other three relays were
 labelled correctly and needed no note.
+
+A third run on 2026-09-24, after the redaction fix (version 2), gave:
+
+- held-out accuracy of 88%;
+- Brier 0.051 and log loss 0.110;
+- 50 of 50 answers correct at confidence ≥ 0.95;
+- S1 average precision 0.96 and S2 0.63.
+
+The same two relays were mislabelled, with the relay note on both. The relayed
+receipt came back at 0.73, and every error fell below 0.8. The same run on the
+incident-stress cases is in
+[the sprint re-benchmark](sprint/rebench-2026-09-24.md).
 
 What the pilot does and does not show:
 

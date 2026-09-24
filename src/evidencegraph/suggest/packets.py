@@ -20,7 +20,9 @@ from evidencegraph.store import Store, safe_path
 from evidencegraph.suggest.records import SpanPacket
 
 PACKET_VERSION = "1"
-REDACTION_VERSION = "1"
+# 2: an already-redacted value is neither matched again as a free-text assignment nor
+# counted again.
+REDACTION_VERSION = "2"
 DEFAULT_ROLES = ("user", "assistant", "tool")
 MAX_ARGUMENT_CHARS = 1000
 REDACTED = "[redacted]"
@@ -30,7 +32,7 @@ SECRET_KEY = re.compile(
 )
 SECRET_ASSIGNMENT = re.compile(
     r"(?i)\b((?:receipt_)?token|secret|passw(?:or)?d|api[_-]?key)"
-    r"([\"']?\s*[:=]\s*[\"']?)([^\s\"',}\]]{6,})"
+    r"([\"']?\s*[:=]\s*[\"']?)(?!\[redacted\])([^\s\"',}\]]{6,})"
 )
 BEARER = re.compile(r"(?i)\b(bearer\s+)([A-Za-z0-9._~+/=-]{8,})")
 KEY_SHAPES = re.compile(r"\b(?:apikey_[A-Za-z0-9_]{16,}|sk-[A-Za-z0-9_-]{20,}|gh[pousr]_\w{20,})")
@@ -41,7 +43,7 @@ def redact_value(value: Any) -> tuple[Any, int]:
     if isinstance(value, dict):
         count, result = 0, {}
         for key, item in value.items():
-            if isinstance(key, str) and SECRET_KEY.search(key) and item not in (None, ""):
+            if isinstance(key, str) and SECRET_KEY.search(key) and item not in (None, "", REDACTED):
                 result[key] = REDACTED
                 count += 1
             else:

@@ -326,11 +326,28 @@ def test_packets_redact_credentials_before_egress(claims_case):
     ]
     assert sent and not any("tok-8f1e2c9ab3" in body or "tok-a93b1f27d4" in body for body in sent)
     assert any("[redacted]" in body for body in sent)
+    assert not any("[redacted]]" in body for body in sent)
     text, count = redact_text(
         "auth: Bearer abcdefghijkl and api_key=sk-live-123456 then apikey_" + "x" * 20
     )
     assert count == 3 and "abcdefghijkl" not in text and "sk-live" not in text
     assert redact_text("digest 5d41402abc4b2a76b9719d911017c592")[1] == 0
+
+
+def test_each_secret_is_redacted_once_and_redaction_is_idempotent():
+    # Version 1 re-matched a value redacted by key as a free-text assignment, sending
+    # "[redacted]]" and counting it twice.
+    cases = {
+        '{"accepted": true, "receipt_token": "tok-8f1e2c9ab3"}': (
+            '{"accepted": true, "receipt_token": "[redacted]"}'
+        ),
+        '{"note": "token=abcdef123456"}': '{"note": "token=[redacted]"}',
+        '{"auth": {"api_key": "abcdefghijk"}}': '{"auth": {"api_key": "[redacted]"}}',
+        "receipt_token=tok-8f1e2c9ab3 done": "receipt_token=[redacted] done",
+    }
+    for text, expected in cases.items():
+        assert redact_text(text) == (expected, 1)
+        assert redact_text(expected) == (expected, 0)
 
 
 class FakeTypeSafe(BaseHTTPRequestHandler):
