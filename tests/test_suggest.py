@@ -512,7 +512,9 @@ def test_cli_runs_the_offline_baseline_and_refuses_silent_egress(claims_case):
     shown = json.loads(result.output)
     assert shown["shown"] == 3 and shown["runs"][0]["provider"] == "baseline"
     result = runner.invoke(app, ["suggest", "claims", str(case), "--provider", "typesafe"])
-    assert result.exit_code != 0 and "allow-network" in result.output
+    # Rich may colour and wrap the error box; compare the text without either.
+    plain = "".join(re.sub(r"\x1b\[[0-9;]*m|[│╭╮╰╯─]", "", result.output).split())
+    assert result.exit_code == 2 and "--allow-network" in plain
 
 
 def test_export_never_depends_on_suggestion_health(incident_case, tmp_path, monkeypatch):
