@@ -50,6 +50,7 @@ declaration produces one wrong supported attribution in each seed, as specified.
 | [report-draft.md](report-draft.md) | Editable research draft, abstract and required dual-use appendix |
 | `report-draft.docx` / `report-draft.pdf` | Official-template renders; kept local (gitignored), rebuild with the commands below |
 | [provenance.json](provenance.json), [relay-before.json](relay-before.json) | Starting commit, template hashes and the executed pre-fix counterexample |
+| [rebench-2026-09-24.md](rebench-2026-09-24.md), [rebench-2026-09-24.json](rebench-2026-09-24.json) | Post-Jev re-run on `main`: unchanged scores, review suggestions on the stress cases, live Jev status; not a submission |
 
 The raw local run is `cases/incident-response/` (gitignored). It retains the source
 evidence, private **synthetic** scoring truth, every case and three portable bundles.

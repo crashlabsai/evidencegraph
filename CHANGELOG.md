@@ -22,6 +22,9 @@
 - `eg lab claims-corpus` and `scripts/suggest_experiment.py`: a labelled synthetic
   corpus with dev/held-out splits and a baseline-versus-Jev comparison; results and
   failure cases in `docs/suggestions.md`
+- `scripts/stress_suggestions.py`: review suggestions on copies of the incident-stress
+  cases, beside each injected receipt's forensic outcome, with checks that the docket
+  is unchanged and no receipt token is sent; see `docs/sprint/rebench-2026-09-24.md`
 - `eg serve` gains a Suggestions page: every published run, its review queue in
   `eg suggest show` order with filters and text search, the exact redacted text each
   provider received beside its full answer distribution, stale reasons, an offline

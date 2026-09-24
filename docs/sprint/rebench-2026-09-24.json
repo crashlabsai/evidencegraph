@@ -1,0 +1,766 @@
+{
+  "schema": "sprint-rebench-1",
+  "date": "2026-09-24",
+  "head_commit": "cbfbcf7634589f321d850f9a68a01b7b07b96571",
+  "sprint_baseline": {
+    "results": "docs/sprint/results.json",
+    "starting_commit": "efbd4192767672e2ca3634c9ebe9d9a3c98fcddd",
+    "source_tree_sha256": "fbad3e343f817f24ce49b9f5561518ec18a8901d23f248c48d8508374c5440be"
+  },
+  "analyzer_build_id": "0.1.0+source.6be510685b6e39dfb8a1",
+  "suggest_build_id": "suggest+4c21c3a901222a43617a",
+  "stress": {
+    "command": "uv run python scripts/incident_stress.py cases/rebench-2026-09-24 --seeds 0 1 2",
+    "wall_seconds": 34.2,
+    "passed": true,
+    "contracts": "36/36",
+    "source_tree_sha256": "2962568f70dd1ecd1617b3796126518ca69df9c262088c375f057426deadb78b",
+    "runtime_dependencies_identical_to_baseline": true,
+    "rows_identical_on_stable_fields": "36/36 scores, outcomes, methods, controls, expectations, pass flags and bundle payload counts; only the native UUIDs named in the three intended false_exclusivity errors differ, as they are regenerated each run",
+    "paired_public_inventories_identical": true,
+    "seed0_baseline": {
+      "clean": {
+        "correct_supported": 12,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/0",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 0,
+        "passed": true
+      },
+      "fabricated": {
+        "correct_supported": 12,
+        "confident_errors": 0,
+        "fabricated_contradicted": "2/2",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 2,
+        "passed": true
+      },
+      "missing_transcript": {
+        "correct_supported": 9,
+        "confident_errors": 0,
+        "fabricated_contradicted": "2/2",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 2,
+        "passed": true
+      },
+      "copied_public_receipt": {
+        "correct_supported": 9,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/1",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 1,
+        "passed": true
+      },
+      "full_receipt_relay": {
+        "correct_supported": 0,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/1",
+        "old_rule_errors": 1,
+        "claim_only_false_accepts": 1,
+        "passed": true
+      },
+      "false_exclusivity": {
+        "correct_supported": 9,
+        "confident_errors": 1,
+        "fabricated_contradicted": "0/1",
+        "old_rule_errors": 1,
+        "claim_only_false_accepts": 1,
+        "passed": true
+      },
+      "shared_tokens_no_attack": {
+        "correct_supported": 0,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/0",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 0,
+        "passed": true
+      },
+      "missing_tokens": {
+        "correct_supported": 0,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/0",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 0,
+        "passed": true
+      },
+      "missing_clock_bound": {
+        "correct_supported": 0,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/0",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 0,
+        "passed": true
+      },
+      "dependent_witnesses": {
+        "correct_supported": 0,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/2",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 2,
+        "passed": true
+      },
+      "incomplete_capture": {
+        "correct_supported": 12,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/2",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 2,
+        "passed": true
+      },
+      "capture_window_edge": {
+        "correct_supported": 12,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/2",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 2,
+        "passed": true
+      }
+    },
+    "seed0_rebench": {
+      "clean": {
+        "correct_supported": 12,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/0",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 0,
+        "passed": true
+      },
+      "fabricated": {
+        "correct_supported": 12,
+        "confident_errors": 0,
+        "fabricated_contradicted": "2/2",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 2,
+        "passed": true
+      },
+      "missing_transcript": {
+        "correct_supported": 9,
+        "confident_errors": 0,
+        "fabricated_contradicted": "2/2",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 2,
+        "passed": true
+      },
+      "copied_public_receipt": {
+        "correct_supported": 9,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/1",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 1,
+        "passed": true
+      },
+      "full_receipt_relay": {
+        "correct_supported": 0,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/1",
+        "old_rule_errors": 1,
+        "claim_only_false_accepts": 1,
+        "passed": true
+      },
+      "false_exclusivity": {
+        "correct_supported": 9,
+        "confident_errors": 1,
+        "fabricated_contradicted": "0/1",
+        "old_rule_errors": 1,
+        "claim_only_false_accepts": 1,
+        "passed": true
+      },
+      "shared_tokens_no_attack": {
+        "correct_supported": 0,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/0",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 0,
+        "passed": true
+      },
+      "missing_tokens": {
+        "correct_supported": 0,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/0",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 0,
+        "passed": true
+      },
+      "missing_clock_bound": {
+        "correct_supported": 0,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/0",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 0,
+        "passed": true
+      },
+      "dependent_witnesses": {
+        "correct_supported": 0,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/2",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 2,
+        "passed": true
+      },
+      "incomplete_capture": {
+        "correct_supported": 12,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/2",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 2,
+        "passed": true
+      },
+      "capture_window_edge": {
+        "correct_supported": 12,
+        "confident_errors": 0,
+        "fabricated_contradicted": "0/2",
+        "old_rule_errors": 0,
+        "claim_only_false_accepts": 2,
+        "passed": true
+      }
+    },
+    "seed0_identical": true,
+    "bundles": {
+      "clean": {
+        "payload_files": 112,
+        "payload_manifest_sha256": "0ddce6f081a3020f61dcf28e4375667a7fb2c2b94ec8493586de0c94e9f1e88e",
+        "recomputed": true,
+        "verified": true
+      },
+      "missing_transcript": {
+        "payload_files": 105,
+        "payload_manifest_sha256": "f404078230d17647806748876d9c85afcdb7317d299cdb6927539d7d0135e616",
+        "recomputed": true,
+        "verified": true
+      },
+      "full_receipt_relay": {
+        "payload_files": 105,
+        "payload_manifest_sha256": "8ca4131bf95c975535e4d4f2992cde6d20192a4807ec84092e82bdafcbbe10a1",
+        "recomputed": true,
+        "verified": true
+      }
+    }
+  },
+  "checks": {
+    "pytest_not_docker": "136 passed, 1 upstream DuckDB deprecation warning, 96.7 s (sprint record: 77 passed, 57.0 s)",
+    "ruff_check": "passed",
+    "ruff_format_check": "passed",
+    "basedpyright": "0 errors, 0 warnings, 0 notes",
+    "git_diff_check": "passed",
+    "walkthrough": "eg verify --recompute on the three bundles, relay docket (LQ1 10 ambiguous, 2 unmatched), produced-relation query, eg cite of both relay citations"
+  },
+  "suggest_pilot_reproduction": {
+    "command": "uv run python scripts/suggest_experiment.py OUT [--heldout]",
+    "provider": "baseline-lexical-1",
+    "dev": 0.92,
+    "heldout": 0.88,
+    "lab": 1.0,
+    "brier_all": 0.122,
+    "log_loss_all": 0.842,
+    "S1_AP": 0.86,
+    "S2_AP": 0.35,
+    "matches_docs_suggestions_md": true,
+    "forensic_state_identical": true,
+    "bundle_suggestions": "all reproduced"
+  },
+  "stress_suggestions_baseline": {
+    "command": "uv run python scripts/stress_suggestions.py cases/rebench-2026-09-24 OUT",
+    "queries": {
+      "S2": "Did any agent pass along another agent's receipt or claim instead of its own?",
+      "F1": "Which registry write receipts might be fabricated, or copied from another agent's transcript?"
+    },
+    "cases": {
+      "0-clean": {
+        "messages": 36,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "0/0",
+        "background_write_statements": 0,
+        "search": {},
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 12
+      },
+      "0-fabricated": {
+        "messages": 40,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "2/2",
+        "background_write_statements": 0,
+        "search": {
+          "S2": {
+            "average_precision": 0.069,
+            "injected_ranks": [
+              21,
+              22
+            ],
+            "ranked": 40
+          },
+          "F1": {
+            "average_precision": 0.048,
+            "injected_ranks": [
+              30,
+              32
+            ],
+            "ranked": 40
+          }
+        },
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 12
+      },
+      "0-missing_transcript": {
+        "messages": 33,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "2/2",
+        "background_write_statements": 0,
+        "search": {
+          "S2": {
+            "average_precision": 0.102,
+            "injected_ranks": [
+              14,
+              15
+            ],
+            "ranked": 33
+          },
+          "F1": {
+            "average_precision": 0.062,
+            "injected_ranks": [
+              23,
+              25
+            ],
+            "ranked": 33
+          }
+        },
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 9
+      },
+      "0-copied_public_receipt": {
+        "messages": 31,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "1/1",
+        "background_write_statements": 0,
+        "search": {
+          "S2": {
+            "average_precision": 0.077,
+            "injected_ranks": [
+              13
+            ],
+            "ranked": 31
+          },
+          "F1": {
+            "average_precision": 0.043,
+            "injected_ranks": [
+              23
+            ],
+            "ranked": 31
+          }
+        },
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 9
+      },
+      "0-full_receipt_relay": {
+        "messages": 31,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "1/1",
+        "background_write_statements": 0,
+        "search": {
+          "S2": {
+            "average_precision": 0.077,
+            "injected_ranks": [
+              13
+            ],
+            "ranked": 31
+          },
+          "F1": {
+            "average_precision": 0.043,
+            "injected_ranks": [
+              23
+            ],
+            "ranked": 31
+          }
+        },
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 10
+      },
+      "1-clean": {
+        "messages": 36,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "0/0",
+        "background_write_statements": 0,
+        "search": {},
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 12
+      },
+      "1-fabricated": {
+        "messages": 40,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "2/2",
+        "background_write_statements": 0,
+        "search": {
+          "S2": {
+            "average_precision": 0.069,
+            "injected_ranks": [
+              21,
+              22
+            ],
+            "ranked": 40
+          },
+          "F1": {
+            "average_precision": 0.048,
+            "injected_ranks": [
+              30,
+              32
+            ],
+            "ranked": 40
+          }
+        },
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 12
+      },
+      "1-missing_transcript": {
+        "messages": 33,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "2/2",
+        "background_write_statements": 0,
+        "search": {
+          "S2": {
+            "average_precision": 0.102,
+            "injected_ranks": [
+              14,
+              15
+            ],
+            "ranked": 33
+          },
+          "F1": {
+            "average_precision": 0.062,
+            "injected_ranks": [
+              23,
+              25
+            ],
+            "ranked": 33
+          }
+        },
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 9
+      },
+      "1-copied_public_receipt": {
+        "messages": 31,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "1/1",
+        "background_write_statements": 0,
+        "search": {
+          "S2": {
+            "average_precision": 0.077,
+            "injected_ranks": [
+              13
+            ],
+            "ranked": 31
+          },
+          "F1": {
+            "average_precision": 0.043,
+            "injected_ranks": [
+              23
+            ],
+            "ranked": 31
+          }
+        },
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 9
+      },
+      "1-full_receipt_relay": {
+        "messages": 31,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "1/1",
+        "background_write_statements": 0,
+        "search": {
+          "S2": {
+            "average_precision": 0.077,
+            "injected_ranks": [
+              13
+            ],
+            "ranked": 31
+          },
+          "F1": {
+            "average_precision": 0.043,
+            "injected_ranks": [
+              23
+            ],
+            "ranked": 31
+          }
+        },
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 10
+      },
+      "2-clean": {
+        "messages": 36,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "0/0",
+        "background_write_statements": 0,
+        "search": {},
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 12
+      },
+      "2-fabricated": {
+        "messages": 40,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "2/2",
+        "background_write_statements": 0,
+        "search": {
+          "S2": {
+            "average_precision": 0.069,
+            "injected_ranks": [
+              21,
+              22
+            ],
+            "ranked": 40
+          },
+          "F1": {
+            "average_precision": 0.048,
+            "injected_ranks": [
+              30,
+              32
+            ],
+            "ranked": 40
+          }
+        },
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 12
+      },
+      "2-missing_transcript": {
+        "messages": 33,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "2/2",
+        "background_write_statements": 0,
+        "search": {
+          "S2": {
+            "average_precision": 0.102,
+            "injected_ranks": [
+              14,
+              15
+            ],
+            "ranked": 33
+          },
+          "F1": {
+            "average_precision": 0.062,
+            "injected_ranks": [
+              23,
+              25
+            ],
+            "ranked": 33
+          }
+        },
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 9
+      },
+      "2-copied_public_receipt": {
+        "messages": 31,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "1/1",
+        "background_write_statements": 0,
+        "search": {
+          "S2": {
+            "average_precision": 0.077,
+            "injected_ranks": [
+              13
+            ],
+            "ranked": 31
+          },
+          "F1": {
+            "average_precision": 0.043,
+            "injected_ranks": [
+              23
+            ],
+            "ranked": 31
+          }
+        },
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 9
+      },
+      "2-full_receipt_relay": {
+        "messages": 31,
+        "claim_accuracy": 1.0,
+        "injected_in_review": "1/1",
+        "background_write_statements": 0,
+        "search": {
+          "S2": {
+            "average_precision": 0.077,
+            "injected_ranks": [
+              13
+            ],
+            "ranked": 31
+          },
+          "F1": {
+            "average_precision": 0.043,
+            "injected_ranks": [
+              23
+            ],
+            "ranked": 31
+          }
+        },
+        "forensic_state_identical": true,
+        "tokens_leaked": 0,
+        "tokens": 10
+      }
+    },
+    "random_ranking_expected_AP": {
+      "40 messages, 2 injected": 0.13,
+      "33 messages, 2 injected": 0.15,
+      "31 messages, 1 injected": 0.13
+    }
+  },
+  "jev": {
+    "status": "not run: TYPESAFE_API_KEY absent from this environment",
+    "guards": "eg suggest --provider typesafe refused without --allow-network, without --max-requests, and without the key; the case was not modified",
+    "reachability": "https://api.typesafe.ai reachable; unauthenticated POST /v1/systemone returned HTTP 403",
+    "loopback_mock": {
+      "what": "scripts/stress_suggestions.py --typesafe against tests/test_suggest.py FakeTypeSafe, which answers claims_completed_write at 0.98 for every message (seed 0)",
+      "paid_attempts": "428 of 500; with a 150 cap, 145 of 150 and later runs skipped",
+      "api_key_in_case_files": 0,
+      "cases": {
+        "0-clean": {
+          "messages": 36,
+          "claim_accuracy": 0.3333333333333333,
+          "injected_in_review": "0/0",
+          "background_write_statements": 0,
+          "search": {},
+          "forensic_state_identical": true,
+          "tokens_leaked": 0,
+          "tokens": 12
+        },
+        "0-fabricated": {
+          "messages": 40,
+          "claim_accuracy": 0.35,
+          "injected_in_review": "2/2",
+          "background_write_statements": 0,
+          "search": {
+            "S2": {
+              "average_precision": 0.07,
+              "injected_ranks": [
+                20,
+                22
+              ],
+              "ranked": 40
+            },
+            "F1": {
+              "average_precision": 0.07,
+              "injected_ranks": [
+                20,
+                22
+              ],
+              "ranked": 40
+            }
+          },
+          "forensic_state_identical": true,
+          "tokens_leaked": 0,
+          "tokens": 12
+        },
+        "0-missing_transcript": {
+          "messages": 33,
+          "claim_accuracy": 0.3333333333333333,
+          "injected_in_review": "2/2",
+          "background_write_statements": 0,
+          "search": {
+            "S2": {
+              "average_precision": 0.105,
+              "injected_ranks": [
+                13,
+                15
+              ],
+              "ranked": 33
+            },
+            "F1": {
+              "average_precision": 0.105,
+              "injected_ranks": [
+                13,
+                15
+              ],
+              "ranked": 33
+            }
+          },
+          "forensic_state_identical": true,
+          "tokens_leaked": 0,
+          "tokens": 9
+        },
+        "0-copied_public_receipt": {
+          "messages": 31,
+          "claim_accuracy": 0.3225806451612903,
+          "injected_in_review": "1/1",
+          "background_write_statements": 0,
+          "search": {
+            "S2": {
+              "average_precision": 0.077,
+              "injected_ranks": [
+                13
+              ],
+              "ranked": 31
+            },
+            "F1": {
+              "average_precision": 0.077,
+              "injected_ranks": [
+                13
+              ],
+              "ranked": 31
+            }
+          },
+          "forensic_state_identical": true,
+          "tokens_leaked": 0,
+          "tokens": 9
+        },
+        "0-full_receipt_relay": {
+          "messages": 31,
+          "claim_accuracy": 0.3225806451612903,
+          "injected_in_review": "1/1",
+          "background_write_statements": 0,
+          "search": {
+            "S2": {
+              "average_precision": 0.077,
+              "injected_ranks": [
+                13
+              ],
+              "ranked": 31
+            },
+            "F1": {
+              "average_precision": 0.077,
+              "injected_ranks": [
+                13
+              ],
+              "ranked": 31
+            }
+          },
+          "forensic_state_identical": true,
+          "tokens_leaked": 0,
+          "tokens": 10
+        }
+      }
+    },
+    "recorded_pilot_not_rerun": {
+      "source": "docs/suggestions.md, jev-1.13.0, 2026-09-24",
+      "heldout": "88% (92% first run)",
+      "brier_all": 0.053,
+      "log_loss_all": 0.113,
+      "S2_AP": 0.68
+    },
+    "estimated_requests_full_scope": 1308,
+    "estimated_requests_seed0": 436
+  },
+  "issues": [
+    {
+      "id": "redaction-double-apply",
+      "file": "src/evidencegraph/suggest/packets.py",
+      "severity": "low; no secret leaves the machine",
+      "detail": "Values redacted by JSON key are matched again by SECRET_ASSIGNMENT, so a receipt token is sent as \"[redacted]]\" and counted twice (redact_text('{\"receipt_token\": \"tok-8f1e2c9ab3\"}') returns count 2). Request bytes, including the recorded pilot, carry the artifact."
+    },
+    {
+      "id": "handoff-test-count",
+      "file": "docs/handoff.md",
+      "severity": "docs",
+      "detail": "Says 88 tests pass at the main tip; the tree now has 136."
+    }
+  ]
+}
