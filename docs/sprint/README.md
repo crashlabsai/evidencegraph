@@ -11,8 +11,7 @@ as
 (Team Crashlabs; author Ryan Junejo). It follows the sprint's Track 1 direction on
 fabricated evidence. Sprint projects are early-stage participant work, not Apart
 Research publications. This pack is a development artifact, not evidence of
-production readiness. The report draft remains AI-assisted and needs the author's
-own review and writing.
+production readiness.
 
 ## Apart sprint reviewers
 
