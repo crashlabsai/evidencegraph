@@ -39,8 +39,9 @@ require a PDF, title, abstract of at most 150 words, author names/affiliations a
 Limitations and Dual-Use Considerations appendix. Their linked template suggests
 150–250 words, so this draft follows the stricter sprint-specific limit.
 
-The artifact and marked draft are prepared locally, listing sole author Ryan Junejo
-with affiliation CrashLabs. The author's own final writing remains pending; nothing
-has been submitted. The user explicitly
-allowed using the sprint material to improve and maintain EvidenceGraph if research
-readiness was insufficient, which this pack does independently of submission.
+The artifact lists sole author Ryan Junejo with affiliation CrashLabs and was
+submitted as
+[*Receipt possession is not event attribution*](https://apartresearch.com/sprints/projects/ryan-junejo-4omn).
+Sprint projects are early-stage participant work, not Apart Research publications.
+The sprint material also improves and maintains EvidenceGraph independently of
+submission.

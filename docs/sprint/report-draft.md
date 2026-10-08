@@ -1,6 +1,8 @@
 # Receipt possession is not event attribution
 
-**Status:** AI-assisted draft prepared for the author's review before submission.
+**Status:** Submitted to Apart's AI Incident Response Sprint as
+[*Receipt possession is not event attribution*](https://apartresearch.com/sprints/projects/ryan-junejo-4omn).
+Sprint projects are early-stage participant work, not Apart Research publications.
 
 **Author:** Ryan Junejo
 

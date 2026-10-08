@@ -4,11 +4,24 @@
 to the wrong native event.** EvidenceGraph now leaves that match ambiguous unless
 the case explicitly justifies recorder authenticity or token exclusivity.
 
-This uses the [AI Incident Response Sprint](https://apartresearch.com/sprints/ai-incident-response-sprint-2026-09-11-to-2026-09-13)
-Track 1 direction on fabricated evidence to improve an existing prototype. It is a
-working development artifact, not evidence of production readiness or a submitted
-entry. The sole author is Ryan Junejo, affiliated with CrashLabs. The report is an
-AI-assisted draft requiring the author's own review and writing.
+Submitted to Apart's
+[AI Incident Response Sprint](https://apartresearch.com/sprints/ai-incident-response-sprint-2026-09-11-to-2026-09-13)
+as
+[*Receipt possession is not event attribution*](https://apartresearch.com/sprints/projects/ryan-junejo-4omn)
+(Team Crashlabs; author Ryan Junejo). It follows the sprint's Track 1 direction on
+fabricated evidence. Sprint projects are early-stage participant work, not Apart
+Research publications. This pack is a development artifact, not evidence of
+production readiness.
+
+## Apart sprint reviewers
+
+Comments from the
+[project page](https://apartresearch.com/sprints/projects/ryan-junejo-4omn),
+attributed as Apart sprint reviewers (names not given):
+
+> Nice story: the team put their own tool to the test, found a real weak spot (it could be tricked into blaming the wrong event), and fixed it properly. Small in scope, but a genuine, well-handled catch.
+
+> This forensics project has a good approach. As AI incidents can produce large amounts of evidence, being able to distinguish whether an action happened from which recorded event actually caused it is important. I would like to see this tested on a larger simulated incident with more realistic agent behaviour and evidence, to see whether the attribution approach remains useful outside the small synthetic workflow used here.
 
 ## Review in fifteen minutes
 

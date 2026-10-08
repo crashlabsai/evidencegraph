@@ -128,7 +128,8 @@ the finding. The questions themselves are explained in
   expose a false attribution in the previous token rule and test the corrected
   default, missing clocks, dependent witnesses, incomplete capture, and deliberately
   false declarations. Run `uv run python scripts/incident_stress.py cases/stress`.
-  See [the incident-response work pack](docs/sprint/README.md).
+  See [the incident-response work pack](docs/sprint/README.md) and the
+  [Apart sprint submission](#apart-research-ai-incident-response-sprint) below.
 - **A staged registry incident** with private host truth. Ten seeds of one scripted
   scenario are checked against that truth: all nine supported attributions correct,
   both fabricated receipts contradicted, no false accusations, and a copied genuine
@@ -139,6 +140,46 @@ the finding. The questions themselves are explained in
   audited against the publisher's own manifest. This audits what was published; it
   does not adjudicate the incident. Bodies are not in git because no corpus licence
   has been identified. See [docs/cases/dsewiki.md](docs/cases/dsewiki.md).
+
+## Apart Research AI Incident Response Sprint
+
+Team Crashlabs submitted
+[*Receipt possession is not event attribution*](https://apartresearch.com/sprints/projects/ryan-junejo-4omn)
+to Apart's
+[AI Incident Response Sprint](https://apartresearch.com/sprints/ai-incident-response-sprint-2026-09-11-to-2026-09-13).
+Sprint projects are early-stage participant work, not Apart Research publications.
+
+The project tested one narrow failure in EvidenceGraph's reconstruction: a
+transcript event carrying a genuine receipt copied from a different event. Under
+the old rule, copying a receipt with its token into another transcript made the
+tool attribute one of twelve real registry writes to the wrong event, with full
+confidence. The fix makes matching tokens stay ambiguous unless the case declares
+the recorder is authentic or that tokens could not have been copied. Analyzer
+upgrades invalidate old conclusions until the case is recomputed.
+
+Twelve paired evidence conditions across three seeds behaved as specified in all
+36 checks, including a deliberately false declaration that brings the wrong
+attribution back. The cost is visible: on clean evidence with unknown token
+exclusivity, the tool withholds all twelve correct attributions. An
+evidence-collection checklist tells investigators what to gather before stronger
+claims. Everything ran on synthetic logs with no model, external target or
+credential. The results are development checks on one scripted workflow, not
+accuracy estimates on real incidents.
+
+In-repo materials:
+
+- [docs/sprint/README.md](docs/sprint/README.md): work pack overview and reproduction
+- [docs/sprint/RESULTS.md](docs/sprint/RESULTS.md): the 36 contract checks
+- [docs/sprint/evidence-checklist.md](docs/sprint/evidence-checklist.md): what to collect
+- [docs/sprint/protocol.md](docs/sprint/protocol.md): threat model and scoring
+- [docs/sprint/report-draft.md](docs/sprint/report-draft.md): fuller write-up draft
+
+Reviewer comments from the Apart project page (Apart sprint reviewers; names not
+given):
+
+> Nice story: the team put their own tool to the test, found a real weak spot (it could be tricked into blaming the wrong event), and fixed it properly. Small in scope, but a genuine, well-handled catch.
+
+> This forensics project has a good approach. As AI incidents can produce large amounts of evidence, being able to distinguish whether an action happened from which recorded event actually caused it is important. I would like to see this tested on a larger simulated incident with more realistic agent behaviour and evidence, to see whether the attribution approach remains useful outside the small synthetic workflow used here.
 
 ## Known limits
 
@@ -182,6 +223,7 @@ is [docs/evidencegraph.md](docs/evidencegraph.md).
 | [docs/cases/lab-validation.md](docs/cases/lab-validation.md) | Staged incident and its ground-truth scores |
 | [docs/cases/dsewiki.md](docs/cases/dsewiki.md) | Public export reconstruction findings |
 | [docs/critical-review.md](docs/critical-review.md) | Independent review and the resolution of each finding |
+| [docs/sprint/README.md](docs/sprint/README.md) | Apart sprint submission: receipt possession vs attribution |
 | [docs/handoff.md](docs/handoff.md) | Release history and remaining acceptance work |
 | [SECURITY.md](SECURITY.md) | How to report a misleading conclusion |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | What contributions help most |
